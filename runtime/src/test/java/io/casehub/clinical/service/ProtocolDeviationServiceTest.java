@@ -127,6 +127,10 @@ class ProtocolDeviationServiceTest {
         assertThat(entries.get(0)).isInstanceOf(ProtocolDeviationLedgerEntry.class);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.deviationId).isEqualTo(deviationId);
+        assertThat(entry.sequenceNumber).isEqualTo(1);
+        assertThat(entry.terminalStatus).isNull();
+        assertThat(entry.resolvedAt).isNull();
+        assertThat(entry.actorId).isEqualTo("clinical-service");
     }
 
     @Test

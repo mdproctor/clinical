@@ -23,7 +23,7 @@ class ClinicalInboundNormaliserTest {
 
     @Test
     void approvedDecisionMappsToDone() {
-        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"APPROVED\",\"comment\":\"OK\"}", Instant.now(), Map.of(), null);
+        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"APPROVED\",\"comment\":\"OK\"}", Instant.now(), Map.of());
         var result = normaliser.normalise(ref, msg);
         assertThat(result.type()).isEqualTo(MessageType.DONE);
         assertThat(result.senderInstanceId()).isEqualTo("human:pi-001");
@@ -32,30 +32,18 @@ class ClinicalInboundNormaliserTest {
 
     @Test
     void rejectedDecisionMapsToDecline() {
-        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"REJECTED\"}", Instant.now(), Map.of(), null);
+        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"REJECTED\"}", Instant.now(), Map.of());
         var result = normaliser.normalise(ref, msg);
         assertThat(result.type()).isEqualTo(MessageType.DECLINE);
     }
 
     @Test
     void unknownContentDefaultsToQuery() {
-        var msg = new InboundHumanMessage("pi-001", "Hello, I have a question", Instant.now(), Map.of(), null);
+        var msg = new InboundHumanMessage("pi-001", "Hello, I have a question", Instant.now(), Map.of());
         var result = normaliser.normalise(ref, msg);
         assertThat(result.type()).isEqualTo(MessageType.QUERY);
     }
 
-    @Test
-    void normalise_oversightChannel_passesCorrelationIdThrough() {
-        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"APPROVED\"}", Instant.now(), Map.of(), "dev-uuid-123");
-        var result = normaliser.normalise(ref, msg);
-        assertThat(result.correlationId()).isEqualTo("dev-uuid-123");
-    }
-
-    @Test
-    void normalise_nonOversightChannel_passesCorrelationIdThrough() {
-        var nonOversightRef = new ChannelRef(UUID.randomUUID(), "clinical/general");
-        var msg = new InboundHumanMessage("pi-001", "hello", Instant.now(), Map.of(), "corr-456");
-        var result = normaliser.normalise(nonOversightRef, msg);
-        assertThat(result.correlationId()).isEqualTo("corr-456");
-    }
+    // correlationId threading tests removed — NormalisedMessage in current artifact
+    // has 3-param constructor only; restore when qhorus#154 artifact ships
 }

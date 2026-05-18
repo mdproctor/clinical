@@ -51,8 +51,7 @@ public class AdverseEventService {
             null,
             null,
             null,  // templateId (UUID)
-            null,  // permittedOutcomes (List<String>)
-            null   // inputDataSchema — outputDataSchema not yet in cached artifact
+            null   // permittedOutcomes (List<String>)
         ));
         ae.workItemId = workItem.id;
         ae.persist();

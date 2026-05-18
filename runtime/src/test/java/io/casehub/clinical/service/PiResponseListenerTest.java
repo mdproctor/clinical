@@ -2,6 +2,9 @@ package io.casehub.clinical.service;
 
 import io.casehub.clinical.api.model.*;
 import io.casehub.clinical.entity.*;
+import io.casehub.clinical.ledger.ProtocolDeviationLedgerEntry;
+import io.casehub.ledger.api.model.ActorType;
+import io.casehub.ledger.runtime.repository.LedgerEntryRepository;
 import io.casehub.qhorus.api.message.MessageType;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -18,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PiResponseListenerTest {
 
     @Inject PiResponseListener listener;
+    @Inject LedgerEntryRepository ledgerRepo;
 
     private UUID minorDeviationId, criticalDeviationId, rejectedDeviationId;
 
@@ -85,5 +89,39 @@ class PiResponseListenerTest {
             MessageType.DONE, "human:pi-L");
         ProtocolDeviation loaded = ProtocolDeviation.findById(minorDeviationId);
         assertThat(loaded.piApprovalStatus).isEqualTo(PiApprovalStatus.APPROVED);
+    }
+
+    @Test @Order(6)
+    @Transactional
+    void approvedMinorLedgerEntryWritten() {
+        var entries = ledgerRepo.findBySubjectId(minorDeviationId);
+        assertThat(entries).hasSize(1);
+        ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
+        assertThat(entry.terminalStatus).isEqualTo("APPROVED");
+        assertThat(entry.actorId).isEqualTo("human:pi-L");
+        assertThat(entry.actorType).isEqualTo(ActorType.HUMAN);
+        assertThat(entry.actorRole).isEqualTo("pi-authoriser");
+        assertThat(entry.resolvedAt).isNotNull();
+        assertThat(entry.sequenceNumber).isEqualTo(1);
+    }
+
+    @Test @Order(7)
+    @Transactional
+    void escalatedCriticalLedgerEntryWritten() {
+        var entries = ledgerRepo.findBySubjectId(criticalDeviationId);
+        assertThat(entries).hasSize(1);
+        ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
+        assertThat(entry.terminalStatus).isEqualTo("ESCALATED");
+        assertThat(entry.actorId).isEqualTo("human:pi-L");
+    }
+
+    @Test @Order(8)
+    @Transactional
+    void rejectedLedgerEntryWritten() {
+        var entries = ledgerRepo.findBySubjectId(rejectedDeviationId);
+        assertThat(entries).hasSize(1);
+        ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
+        assertThat(entry.terminalStatus).isEqualTo("REJECTED");
+        assertThat(entry.actorId).isEqualTo("human:pi-L");
     }
 }

@@ -4,6 +4,7 @@ import io.casehub.clinical.api.ProtocolDeviationResolvedEvent;
 import io.casehub.clinical.api.model.EscalationRequirement;
 import io.casehub.clinical.api.model.PiApprovalStatus;
 import io.casehub.clinical.entity.ProtocolDeviation;
+import io.casehub.ledger.api.model.ActorType;
 import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.message.CommitmentService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,6 +23,7 @@ public class PiResponseListener {
 
     @Inject CommitmentService commitmentService;
     @Inject Event<ProtocolDeviationResolvedEvent> resolvedEvent;
+    @Inject DeviationLedgerWriter ledgerWriter;
 
     // @ObservesAsync MessageReceivedEvent — awaiting casehubio/qhorus#153
     // When qhorus#153 ships and casehub-qhorus-api is updated, add:
@@ -58,6 +60,9 @@ public class PiResponseListener {
             deviation.piApprovalStatus = PiApprovalStatus.REJECTED;
             commitmentService.decline(deviationId.toString());
         }
+
+        ledgerWriter.writeResolutionEntry(deviation, deviation.piApprovalStatus,
+            senderId, ActorType.HUMAN, "pi-authoriser");
 
         resolvedEvent.fireAsync(new ProtocolDeviationResolvedEvent(
             deviation.id, deviation.siteId, deviation.severity,

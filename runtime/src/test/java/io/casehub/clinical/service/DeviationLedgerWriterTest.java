@@ -60,6 +60,17 @@ class DeviationLedgerWriterTest {
     }
 
     @Test
+    void writeCommandEntry_nullEscalationRequirementWritesNullColumn() {
+        dev.escalationRequirement = null;
+        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+
+        writer.writeCommandEntry(dev, "pi-001");
+
+        ProtocolDeviationLedgerEntry entry = captureEntry();
+        assertThat(entry.escalationRequirement).isNull();
+    }
+
+    @Test
     void writeCommandEntry_sequenceNumberIncrements() {
         LedgerEntry prior = new ProtocolDeviationLedgerEntry();
         prior.sequenceNumber = 2;

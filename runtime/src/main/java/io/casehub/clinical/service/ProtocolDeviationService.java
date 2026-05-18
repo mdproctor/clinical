@@ -18,6 +18,18 @@ import jakarta.transaction.Transactional;
 
 import java.time.Instant;
 
+/**
+ * Orchestrates the PI authorisation COMMAND lifecycle for protocol deviations.
+ *
+ * <p>Per GCP/ICH E6(R3): every protocol deviation requires a named Principal Investigator
+ * to formally acknowledge and authorise (or reject) the deviation. This service:
+ * <ol>
+ *   <li>Creates a per-deviation oversight channel in Qhorus</li>
+ *   <li>Sends a COMMAND message addressed to the PI — auto-opens a Commitment via MessageService</li>
+ *   <li>Stamps the deviation with channel name, command timestamp, response deadline, and escalation tier</li>
+ *   <li>Writes a tamper-evident {@link io.casehub.clinical.ledger.ProtocolDeviationLedgerEntry} via DeviationLedgerWriter</li>
+ * </ol>
+ */
 @ApplicationScoped
 public class ProtocolDeviationService {
 

@@ -12,6 +12,20 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Centralises all tamper-evident ledger writes for the protocol deviation PI authorisation lifecycle.
+ *
+ * Owns sequenceNumber computation via findLatestBySubjectId — ensuring each entry in a
+ * deviation's audit chain has a unique, incrementing position regardless of which service writes it.
+ *
+ * GCP / ICH E6(R3) compliance: every deviation must have a ledgered COMMAND (obligation issued)
+ * and a ledgered resolution (APPROVED, REJECTED, ESCALATED, or EXPIRED). Without both ends of
+ * the chain, an FDA inspector can see a PI was commanded but not how the obligation was discharged.
+ *
+ * Note: SYSTEM_ACTOR and ProtocolDeviationService.CLINICAL_SENDER are the same string
+ * "clinical-service" — both identify the clinical harness in their respective contexts
+ * (ledger actor vs qhorus message sender). Keep them in sync if the harness identity changes.
+ */
 @ApplicationScoped
 public class DeviationLedgerWriter {
 

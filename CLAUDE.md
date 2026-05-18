@@ -298,6 +298,14 @@ H2 supports XA; without this Agroal throws "Failed to enlist" with no hint about
 
 **Reactive suppression:** `quarkus.datasource.reactive=false` and `quarkus.datasource.qhorus.reactive=false` are required in test `application.properties` to prevent startup failure in the JDBC-only test environment. Do NOT add `casehub.qhorus.reactive.enabled=false` — this key no longer exists in qhorus config model and causes `ConfigValidationException`.
 
+**Ledger SNAPSHOT reactive services:** casehub-ledger SNAPSHOT ships services (`LedgerVerificationService`, `LedgerComplianceReportService`, `LedgerRetentionJob`) that inject `ReactiveLedgerEntryRepository`, which is `@Vetoed` in the JDBC-only test environment. If a ledger SNAPSHOT update causes CDI startup failure at boot, add offending services to test `application.properties`:
+```properties
+quarkus.arc.exclude-types=io.casehub.ledger.runtime.service.LedgerVerificationService,\
+  io.casehub.ledger.runtime.service.LedgerComplianceReportService,\
+  io.casehub.ledger.runtime.service.LedgerRetentionJob
+```
+When the ledger SNAPSHOT adds new reactive-dependent services, add them here. Upstream fix tracked as clinical#17.
+
 ## Build Commands
 
 ```bash

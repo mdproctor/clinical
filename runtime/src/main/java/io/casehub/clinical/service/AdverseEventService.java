@@ -51,7 +51,10 @@ public class AdverseEventService {
             null,
             null,
             null,  // templateId (UUID)
-            null   // permittedOutcomes (List<String>)
+            null,  // permittedOutcomes (List<String>)
+            null,  // inputDataSchema
+            null,  // outputDataSchema
+            null   // (additional field in current casehub-work 0.2-SNAPSHOT)
         ));
         ae.workItemId = workItem.id;
         ae.persist();

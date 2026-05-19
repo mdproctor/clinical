@@ -9,9 +9,11 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
@@ -20,6 +22,7 @@ class DeviationExpirationJobTest {
 
     @Inject DeviationExpirationJob job;
     @Inject LedgerEntryRepository ledgerRepo;
+    @Inject TestDeviationPersister persister;
 
     private UUID siteId;
 
@@ -38,25 +41,16 @@ class DeviationExpirationJobTest {
     }
 
     @Test
-    @Transactional
     void overdueCommandedDeviationIsMarkedExpired() {
-        ProtocolDeviation dev = new ProtocolDeviation();
-        dev.id = UUID.randomUUID();
-        dev.siteId = siteId;
-        dev.deviationType = "overdue"; dev.severity = DeviationSeverity.MINOR;
-        dev.piApprovalStatus = PiApprovalStatus.COMMANDED;
-        dev.escalationRequirement = EscalationRequirement.NONE;
-        dev.piCommandChannelName = "clinical/deviation/" + dev.id + "/pi-oversight";
-        dev.commandedAt = Instant.now().minus(10, ChronoUnit.DAYS);
-        dev.responseDeadline = Instant.now().minus(3, ChronoUnit.DAYS);
-        dev.persist();
+        UUID devId = persister.persistCommanded(siteId, DeviationSeverity.MINOR,
+            EscalationRequirement.NONE, Instant.now().minus(3, ChronoUnit.DAYS));
 
         job.checkExpiredCommitments();
 
-        ProtocolDeviation loaded = ProtocolDeviation.findById(dev.id);
+        ProtocolDeviation loaded = ProtocolDeviation.findById(devId);
         assertThat(loaded.piApprovalStatus).isEqualTo(PiApprovalStatus.EXPIRED);
 
-        var entries = ledgerRepo.findBySubjectId(dev.id);
+        var entries = ledgerRepo.findBySubjectId(devId);
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.terminalStatus).isEqualTo("EXPIRED");
@@ -68,20 +62,11 @@ class DeviationExpirationJobTest {
     }
 
     @Test
-    @Transactional
     void twoOverdueDeviationsEachGetIndependentLedgerEntry() {
-        UUID devId1 = UUID.randomUUID(), devId2 = UUID.randomUUID();
-        for (UUID id : new UUID[]{devId1, devId2}) {
-            ProtocolDeviation d = new ProtocolDeviation();
-            d.id = id; d.siteId = siteId;
-            d.deviationType = "overdue"; d.severity = DeviationSeverity.MINOR;
-            d.piApprovalStatus = PiApprovalStatus.COMMANDED;
-            d.escalationRequirement = EscalationRequirement.NONE;
-            d.piCommandChannelName = "clinical/deviation/" + id + "/pi-oversight";
-            d.commandedAt = Instant.now().minus(10, ChronoUnit.DAYS);
-            d.responseDeadline = Instant.now().minus(1, ChronoUnit.DAYS);
-            d.persist();
-        }
+        UUID devId1 = persister.persistCommanded(siteId, DeviationSeverity.MINOR,
+            EscalationRequirement.NONE, Instant.now().minus(1, ChronoUnit.DAYS));
+        UUID devId2 = persister.persistCommanded(siteId, DeviationSeverity.MINOR,
+            EscalationRequirement.NONE, Instant.now().minus(1, ChronoUnit.DAYS));
 
         job.checkExpiredCommitments();
 
@@ -90,22 +75,13 @@ class DeviationExpirationJobTest {
     }
 
     @Test
-    @Transactional
     void futureDeadlineDeviationIsNotExpired() {
-        ProtocolDeviation dev = new ProtocolDeviation();
-        dev.id = UUID.randomUUID();
-        dev.siteId = siteId;
-        dev.deviationType = "active"; dev.severity = DeviationSeverity.MINOR;
-        dev.piApprovalStatus = PiApprovalStatus.COMMANDED;
-        dev.escalationRequirement = EscalationRequirement.NONE;
-        dev.piCommandChannelName = "clinical/deviation/" + dev.id + "/pi-oversight";
-        dev.commandedAt = Instant.now();
-        dev.responseDeadline = Instant.now().plus(7, ChronoUnit.DAYS);
-        dev.persist();
+        UUID devId = persister.persistCommanded(siteId, DeviationSeverity.MINOR,
+            EscalationRequirement.NONE, Instant.now().plus(7, ChronoUnit.DAYS));
 
         job.checkExpiredCommitments();
 
-        ProtocolDeviation loaded = ProtocolDeviation.findById(dev.id);
+        ProtocolDeviation loaded = ProtocolDeviation.findById(devId);
         assertThat(loaded.piApprovalStatus).isEqualTo(PiApprovalStatus.COMMANDED);
     }
 }

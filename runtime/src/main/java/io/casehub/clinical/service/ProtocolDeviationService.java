@@ -34,7 +34,7 @@ import java.time.Instant;
 public class ProtocolDeviationService {
 
     static final String CLINICAL_SENDER = "clinical-service";
-    static final String CHANNEL_ALLOWED_TYPES = "QUERY,COMMAND";
+    static final String CHANNEL_ALLOWED_TYPES = "QUERY,COMMAND,DONE,DECLINE";
 
     @Inject DeviationResponsePolicy policy;
     @Inject ChannelService channelService;

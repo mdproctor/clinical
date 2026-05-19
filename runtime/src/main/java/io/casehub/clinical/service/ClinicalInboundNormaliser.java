@@ -17,9 +17,8 @@ public class ClinicalInboundNormaliser implements InboundNormaliser {
         MessageType type = isOversightChannel(channel.name())
             ? detectDecision(raw.content())
             : MessageType.QUERY;
-        // NormalisedMessage extended constructor (correlationId etc.) — qhorus#154 artifact
         return new NormalisedMessage(type, raw.content(), "human:" + raw.externalSenderId(),
-            channel.name(), null, null, null);
+            raw.correlationId(), null, null, null);
     }
 
     private boolean isOversightChannel(String channelName) {

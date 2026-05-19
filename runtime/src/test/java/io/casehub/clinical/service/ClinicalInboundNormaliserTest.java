@@ -44,6 +44,18 @@ class ClinicalInboundNormaliserTest {
         assertThat(result.type()).isEqualTo(MessageType.QUERY);
     }
 
-    // correlationId threading tests removed — NormalisedMessage in current artifact
-    // has 3-param constructor only; restore when qhorus#154 artifact ships
+    @Test
+    void oversightChannel_passesCorrelationIdThrough() {
+        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"APPROVED\"}", Instant.now(), Map.of(), "dev-uuid-123");
+        var result = normaliser.normalise(ref, msg);
+        assertThat(result.correlationId()).isEqualTo("dev-uuid-123");
+    }
+
+    @Test
+    void nonOversightChannel_passesCorrelationIdThrough() {
+        var nonOversightRef = new ChannelRef(UUID.randomUUID(), "clinical/general");
+        var msg = new InboundHumanMessage("pi-001", "hello", Instant.now(), Map.of(), "corr-456");
+        var result = normaliser.normalise(nonOversightRef, msg);
+        assertThat(result.correlationId()).isEqualTo("corr-456");
+    }
 }

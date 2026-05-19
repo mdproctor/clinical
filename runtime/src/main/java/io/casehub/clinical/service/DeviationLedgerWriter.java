@@ -9,6 +9,7 @@ import io.casehub.ledger.runtime.repository.LedgerEntryRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -34,6 +35,9 @@ public class DeviationLedgerWriter {
     @Inject
     LedgerEntryRepository ledgerEntryRepository;
 
+    @Inject
+    Clock clock;
+
     public void writeCommandEntry(ProtocolDeviation dev, String piId) {
         ProtocolDeviationLedgerEntry entry = baseEntry(dev);
         entry.entryType = LedgerEntryType.COMMAND;
@@ -56,7 +60,7 @@ public class DeviationLedgerWriter {
         entry.actorId = actorId;
         entry.actorType = actorType;
         entry.actorRole = actorRole;
-        entry.occurredAt = Instant.now();
+        entry.occurredAt = clock.instant();
         entry.terminalStatus = terminalStatus.name();
         entry.resolvedAt = entry.occurredAt;
         ledgerEntryRepository.save(entry);

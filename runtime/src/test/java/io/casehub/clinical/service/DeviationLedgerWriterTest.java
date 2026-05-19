@@ -17,12 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,13 +35,18 @@ class DeviationLedgerWriterTest {
     @Mock
     LedgerEntryRepository ledgerEntryRepository;
 
+    @Mock
+    Clock clock;
+
     @InjectMocks
     DeviationLedgerWriter writer;
 
+    private static final Instant FIXED_INSTANT = Instant.parse("2026-05-19T10:00:00Z");
     private ProtocolDeviation dev;
 
     @BeforeEach
     void setUp() {
+        lenient().when(clock.instant()).thenReturn(FIXED_INSTANT);
         dev = new ProtocolDeviation();
         dev.id = UUID.randomUUID();
         dev.siteId = UUID.randomUUID();
@@ -118,7 +126,8 @@ class DeviationLedgerWriterTest {
         assertThat(entry.actorType).isEqualTo(ActorType.HUMAN);
         assertThat(entry.actorRole).isEqualTo("pi-authoriser");
         assertThat(entry.terminalStatus).isEqualTo("APPROVED");
-        assertThat(entry.resolvedAt).isNotNull();
+        assertThat(entry.resolvedAt).isEqualTo(FIXED_INSTANT);
+        assertThat(entry.occurredAt).isEqualTo(FIXED_INSTANT);
         assertThat(entry.subjectId).isEqualTo(dev.id);
     }
 

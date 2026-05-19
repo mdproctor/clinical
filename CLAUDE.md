@@ -289,12 +289,12 @@ quarkus.arc.selected-alternatives=io.casehub.ledger.runtime.repository.jpa.JpaLe
 ```
 Quarkus ArC ignores `beans.xml` `<alternatives>` — the config property is required.
 
-**Multi-datasource test XA:** Any `@Transactional` method writing to both datasources requires XA in test properties:
+**Multi-datasource XA:** Any `@Transactional` method writing to both datasources requires XA in **both** `application.properties` (production) and test `application.properties`:
 ```properties
 quarkus.datasource.jdbc.transactions=xa
 quarkus.datasource.qhorus.jdbc.transactions=xa
 ```
-H2 supports XA; without this Agroal throws "Failed to enlist" with no hint about the fix.
+H2 and production JDBC both require this. Without it, Agroal throws "Failed to enlist" with no hint about the fix. `ProtocolDeviationService`, `DeviationExpirer`, and `AdverseEventService` all write cross-datasource.
 
 **Reactive suppression:** `quarkus.datasource.reactive=false` and `quarkus.datasource.qhorus.reactive=false` are required in test `application.properties` to prevent startup failure in the JDBC-only test environment. Do NOT add `casehub.qhorus.reactive.enabled=false` — this key no longer exists in qhorus config model and causes `ConfigValidationException`.
 

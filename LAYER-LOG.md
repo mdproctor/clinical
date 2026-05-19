@@ -276,6 +276,17 @@ Tests use `drop-and-create` + Flyway disabled to avoid the classpath conflict.
 10. Implement expiration job: `@Scheduled @Transactional`, per-item try/catch, call `commitmentService.fail(entity.id.toString())` on each expired entity
 11. Test: write response listener unit tests calling `process()` directly; write `@Disabled` integration test for the full qhorus#153 CDI chain
 
+### Extended in clinical#14 — resolution entries complete the Merkle chain
+
+**Issue:** casehubio/clinical#14 (clinical#15 fixes hardcoded `sequenceNumber`)
+**Key files added:**
+- `runtime/src/main/java/io/casehub/clinical/service/DeviationLedgerWriter.java` — centralised ledger writer; owns `sequenceNumber` computation via `findLatestBySubjectId`; provides `writeCommandEntry` and `writeResolutionEntry`; unit-testable with Mockito
+- `runtime/src/main/resources/db/migration/qhorus/V1007__deviation_resolution_fields.sql` — adds `terminal_status VARCHAR(50)` and `resolved_at TIMESTAMP WITH TIME ZONE` to `protocol_deviation_ledger_entry`
+
+The Layer 3 Merkle chain was initially incomplete: the COMMAND entry existed but no resolution entry was written when the PI responded or the deadline expired. An FDA inspector could see the PI was formally commanded but not how the obligation discharged. Clinical#14 closes this gap: `PiResponseListener.process()` and `DeviationExpirationJob.checkExpiredCommitments()` now write EVENT-type ledger entries with `terminalStatus` (APPROVED/REJECTED/ESCALATED/EXPIRED) and `resolvedAt`.
+
+Three services write to the same ledger chain, so `sequenceNumber` ownership matters. `DeviationLedgerWriter` is the canonical pattern for this: one `@ApplicationScoped` bean owns sequence computation and entry construction for all write sites. See ADR-0002 in `docs/adr/`.
+
 ---
 
 ## Layer 4 — + casehub-ledger (FDA tamper-evident audit trail)
@@ -364,3 +375,4 @@ quarkus.datasource.qhorus.jdbc.transactions=xa
 7. Populate all required `LedgerEntry` fields before calling `save()` — reference `LedgerPrivacyWiringIT.java` in casehub-ledger for the required field list
 8. Wrap domain entity persist, WorkItem creation, and ledger write in a single `@Transactional` method — atomic or nothing
 9. Test: verify the `LedgerEntry` is written with correct fields; verify that a simulated ledger write failure rolls back the entity persist and WorkItem creation
+10. When a ledger subclass is written from multiple services: extract a dedicated `@ApplicationScoped` writer bean that owns `sequenceNumber` computation and entry construction for all write sites. Each service injects the writer and calls named methods. The invariant is testable with a mocked repository in isolation. See `DeviationLedgerWriter` and ADR-0002 in `docs/adr/`.

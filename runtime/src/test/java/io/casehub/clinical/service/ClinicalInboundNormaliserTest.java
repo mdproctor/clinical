@@ -23,7 +23,7 @@ class ClinicalInboundNormaliserTest {
 
     @Test
     void approvedDecisionMappsToDone() {
-        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"APPROVED\",\"comment\":\"OK\"}", Instant.now(), Map.of());
+        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"APPROVED\",\"comment\":\"OK\"}", Instant.now(), Map.of("", ""), "");
         var result = normaliser.normalise(ref, msg);
         assertThat(result.type()).isEqualTo(MessageType.DONE);
         assertThat(result.senderInstanceId()).isEqualTo("human:pi-001");
@@ -32,14 +32,14 @@ class ClinicalInboundNormaliserTest {
 
     @Test
     void rejectedDecisionMapsToDecline() {
-        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"REJECTED\"}", Instant.now(), Map.of());
+        var msg = new InboundHumanMessage("pi-001", "{\"decision\":\"REJECTED\"}", Instant.now(), Map.of("", ""), "");
         var result = normaliser.normalise(ref, msg);
         assertThat(result.type()).isEqualTo(MessageType.DECLINE);
     }
 
     @Test
     void unknownContentDefaultsToQuery() {
-        var msg = new InboundHumanMessage("pi-001", "Hello, I have a question", Instant.now(), Map.of());
+        var msg = new InboundHumanMessage("pi-001", "Hello, I have a question", Instant.now(), Map.of("", ""), "");
         var result = normaliser.normalise(ref, msg);
         assertThat(result.type()).isEqualTo(MessageType.QUERY);
     }

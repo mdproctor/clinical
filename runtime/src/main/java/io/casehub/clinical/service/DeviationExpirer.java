@@ -48,6 +48,10 @@ public class DeviationExpirer {
         commitmentService.fail(d.id.toString());
         ledgerWriter.writeResolutionEntry(d, PiApprovalStatus.EXPIRED,
             "system", ActorType.SYSTEM, "deviation-expiration-job");
+        // Fire-and-forget: observer failures are asynchronous and not surfaced here.
+        // The deviation is already EXPIRED and the Commitment is already FAILED at this point.
+        // When qhorus#153 lands and @ObservesAsync consumers are wired, ensure downstream
+        // observers handle their own failure semantics — this method will not be retried.
         resolvedEvent.fireAsync(new ProtocolDeviationResolvedEvent(
             d.id, d.siteId, d.severity,
             d.escalationRequirement != null ? d.escalationRequirement : EscalationRequirement.NONE,

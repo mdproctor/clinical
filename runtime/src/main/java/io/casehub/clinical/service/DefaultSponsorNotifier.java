@@ -53,7 +53,7 @@ public class DefaultSponsorNotifier implements SponsorNotifier {
     }
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
-    void recordAttempt(SponsorNotificationRequest req, boolean delivered) {
+    protected void recordAttempt(SponsorNotificationRequest req, boolean delivered) {
         ProtocolDeviation dev = ProtocolDeviation.findById(req.deviationId());
         if (dev == null) {
             Log.errorf("ProtocolDeviation %s not found — cannot write ledger entry", req.deviationId());
@@ -75,8 +75,8 @@ public class DefaultSponsorNotifier implements SponsorNotifier {
                 "Site: " + req.siteId() + ". Type: " + req.deviationType() + ".";
             case EXPIRED -> "PI response deadline expired — no response received. " +
                 "Site: " + req.siteId() + ". Type: " + req.deviationType() + ".";
-            default -> "Deviation " + req.deviationId() + " resolved as " + req.terminalStatus().name() +
-                ". Site: " + req.siteId() + ". Type: " + req.deviationType() + ".";
+            default -> throw new IllegalArgumentException(
+                "Unexpected terminal status for sponsor notification: " + req.terminalStatus());
         };
     }
 }

@@ -38,6 +38,12 @@
       <artifactId>casehub-qhorus</artifactId>
     </dependency>
 
+    <!-- Layer 4: sponsor notification delivery via connector SPI -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-connectors-core</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-orm-panache</artifactId>

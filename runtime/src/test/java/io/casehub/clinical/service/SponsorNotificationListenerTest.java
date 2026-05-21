@@ -81,6 +81,7 @@ class SponsorNotificationListenerTest {
         assertThat(req.terminalStatus()).isEqualTo(PiApprovalStatus.ESCALATED);
         assertThat(req.sponsorNotificationConnectorId()).isEqualTo("slack");
         assertThat(req.sponsorNotificationDestination()).isEqualTo("https://hooks.slack.com/test");
+        assertThat(req.severity()).isEqualTo(DeviationSeverity.MAJOR);
     }
 
     @Test

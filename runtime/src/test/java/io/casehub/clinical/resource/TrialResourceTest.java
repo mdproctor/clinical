@@ -59,7 +59,9 @@ class TrialResourceTest {
             .body("phase", equalTo("PHASE_II"))
             .body("sponsor", equalTo("BioTest"))
             .body("targetEnrollment", equalTo(50))
-            .body("status", equalTo("PLANNING"));
+            .body("status", equalTo("PLANNING"))
+            .body("sponsorNotificationConnectorId", nullValue())
+            .body("sponsorNotificationDestination", nullValue());
     }
 
     @Test

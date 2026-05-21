@@ -29,4 +29,10 @@ public class ClinicalTrial extends PanacheEntityBase {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     public TrialStatus status = TrialStatus.PLANNING;
+
+    @Column(name = "sponsor_notification_connector_id")
+    public String sponsorNotificationConnectorId;
+
+    @Column(name = "sponsor_notification_destination")
+    public String sponsorNotificationDestination;
 }

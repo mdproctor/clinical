@@ -55,7 +55,9 @@ public class DeviationExpirer {
         resolvedEvent.fireAsync(new ProtocolDeviationResolvedEvent(
             d.id, d.siteId, d.severity,
             d.escalationRequirement != null ? d.escalationRequirement : EscalationRequirement.NONE,
-            PiApprovalStatus.EXPIRED
+            PiApprovalStatus.EXPIRED,
+            d.deviationType,
+            null
         ));
     }
 }

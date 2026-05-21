@@ -51,4 +51,7 @@ public class ProtocolDeviationLedgerEntry extends LedgerEntry {
 
     @Column(name = "resolved_at")
     public Instant resolvedAt;
+
+    @Column(name = "sponsor_notified_at")
+    public Instant sponsorNotifiedAt;
 }

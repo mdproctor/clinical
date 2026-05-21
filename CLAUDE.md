@@ -300,6 +300,8 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **Ledger SNAPSHOT reactive services:** Fixed in ledger#92 — `LedgerVerificationService` and related services now use `Instance<ReactiveLedgerEntryRepository>` with `isResolvable()` guard. JDBC-only consumers start cleanly without `quarkus.arc.exclude-types`. No workaround needed.
 
+**Connector CDI exclusions:** `TwilioSmsConnector` and `WhatsAppConnector` (from `casehub-connectors-core`) require external credentials (`casehub.connectors.twilio.*`, `casehub.connectors.whatsapp.*`) not present in the test environment. They are excluded via `quarkus.arc.exclude-types` in test `application.properties`. `SlackConnector` is replaced by `TestSlackConnector` via `@Mock`. When adding new connectors with required external config, add them to the exclude-types list.
+
 ## Build Commands
 
 ```bash

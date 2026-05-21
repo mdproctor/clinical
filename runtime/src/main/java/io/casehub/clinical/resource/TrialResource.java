@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.net.URI;
@@ -22,7 +23,9 @@ public class TrialResource {
         @NotBlank String protocolId,
         @NotNull TrialPhase phase,
         @NotBlank String sponsor,
-        @Positive int targetEnrollment
+        @Positive int targetEnrollment,
+        @Size(max = 64) String sponsorNotificationConnectorId,
+        @Size(max = 2048) String sponsorNotificationDestination
     ) {}
 
     @POST
@@ -35,6 +38,8 @@ public class TrialResource {
         trial.sponsor = req.sponsor();
         trial.targetEnrollment = req.targetEnrollment();
         trial.status = TrialStatus.PLANNING;
+        trial.sponsorNotificationConnectorId = req.sponsorNotificationConnectorId();
+        trial.sponsorNotificationDestination = req.sponsorNotificationDestination();
         trial.persist();
 
         URI location = uriInfo.getAbsolutePathBuilder().path(trial.id.toString()).build();

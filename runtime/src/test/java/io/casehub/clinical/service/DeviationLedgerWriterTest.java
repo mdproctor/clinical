@@ -169,13 +169,10 @@ class DeviationLedgerWriterTest {
     void writeSponsorNotifiedEntry_sets_sponsor_notifier_role_and_notified_at_when_delivered() {
         when(ledgerEntryRepository.findLatestBySubjectId(dev.id))
             .thenReturn(Optional.of(existingEntry(2)));
-        ArgumentCaptor<ProtocolDeviationLedgerEntry> cap =
-            ArgumentCaptor.forClass(ProtocolDeviationLedgerEntry.class);
 
         writer.writeSponsorNotifiedEntry(dev, FIXED_INSTANT, true);
 
-        verify(ledgerEntryRepository).save(cap.capture());
-        ProtocolDeviationLedgerEntry entry = cap.getValue();
+        ProtocolDeviationLedgerEntry entry = captureEntry();
         assertThat(entry.actorRole).isEqualTo("sponsor-notifier");
         assertThat(entry.actorType).isEqualTo(ActorType.SYSTEM);
         assertThat(entry.entryType).isEqualTo(LedgerEntryType.EVENT);
@@ -188,14 +185,13 @@ class DeviationLedgerWriterTest {
     void writeSponsorNotifiedEntry_sets_failed_role_and_null_notified_at_when_not_delivered() {
         when(ledgerEntryRepository.findLatestBySubjectId(dev.id))
             .thenReturn(Optional.empty());
-        ArgumentCaptor<ProtocolDeviationLedgerEntry> cap =
-            ArgumentCaptor.forClass(ProtocolDeviationLedgerEntry.class);
 
         writer.writeSponsorNotifiedEntry(dev, FIXED_INSTANT, false);
 
-        verify(ledgerEntryRepository).save(cap.capture());
-        ProtocolDeviationLedgerEntry entry = cap.getValue();
+        ProtocolDeviationLedgerEntry entry = captureEntry();
         assertThat(entry.actorRole).isEqualTo("sponsor-notifier-failed");
+        assertThat(entry.actorType).isEqualTo(ActorType.SYSTEM);
+        assertThat(entry.entryType).isEqualTo(LedgerEntryType.EVENT);
         assertThat(entry.sponsorNotifiedAt).isNull();
         assertThat(entry.sequenceNumber).isEqualTo(1);
     }

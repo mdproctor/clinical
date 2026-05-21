@@ -66,6 +66,12 @@ public class DeviationLedgerWriter {
         ledgerEntryRepository.save(entry);
     }
 
+    /**
+     * Records a sponsor notification event in the ledger.
+     *
+     * {@code notifiedAt} is caller-supplied (the connector delivery timestamp) rather than clock.instant()
+     * so that the ledger accurately records when delivery was attempted, not when the record was written.
+     */
     public void writeSponsorNotifiedEntry(ProtocolDeviation dev, Instant notifiedAt, boolean delivered) {
         ProtocolDeviationLedgerEntry entry = baseEntry(dev);
         entry.entryType = LedgerEntryType.EVENT;

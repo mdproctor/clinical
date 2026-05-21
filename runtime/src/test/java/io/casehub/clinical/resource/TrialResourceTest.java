@@ -104,4 +104,32 @@ class TrialResourceTest {
         .then()
             .statusCode(400);
     }
+
+    @Test
+    void register_with_sponsor_config_persists_connector_fields() {
+        String body = """
+            {
+              "protocolId": "ONCO-2026-001",
+              "phase": "PHASE_II",
+              "sponsor": "Pfizer",
+              "targetEnrollment": 50,
+              "sponsorNotificationConnectorId": "slack",
+              "sponsorNotificationDestination": "https://hooks.slack.com/T000/B000/xxx"
+            }
+            """;
+
+        String location = given()
+            .contentType("application/json")
+            .body(body)
+            .when().post("/trials")
+            .then().statusCode(201)
+            .extract().header("Location");
+
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        given()
+            .when().get("/trials/" + id)
+            .then().statusCode(200)
+            .body("sponsorNotificationConnectorId", equalTo("slack"))
+            .body("sponsorNotificationDestination", equalTo("https://hooks.slack.com/T000/B000/xxx"));
+    }
 }

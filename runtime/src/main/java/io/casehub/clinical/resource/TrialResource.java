@@ -22,7 +22,9 @@ public class TrialResource {
         @NotBlank String protocolId,
         @NotNull TrialPhase phase,
         @NotBlank String sponsor,
-        @Positive int targetEnrollment
+        @Positive int targetEnrollment,
+        String sponsorNotificationConnectorId,
+        String sponsorNotificationDestination
     ) {}
 
     @POST
@@ -35,6 +37,8 @@ public class TrialResource {
         trial.sponsor = req.sponsor();
         trial.targetEnrollment = req.targetEnrollment();
         trial.status = TrialStatus.PLANNING;
+        trial.sponsorNotificationConnectorId = req.sponsorNotificationConnectorId();
+        trial.sponsorNotificationDestination = req.sponsorNotificationDestination();
         trial.persist();
 
         URI location = uriInfo.getAbsolutePathBuilder().path(trial.id.toString()).build();

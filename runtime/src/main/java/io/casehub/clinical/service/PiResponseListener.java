@@ -27,7 +27,6 @@ public class PiResponseListener {
 
     @Transactional
     public void onMessage(@ObservesAsync MessageReceivedEvent event) {
-        if (event.messageType() != MessageType.DONE && event.messageType() != MessageType.DECLINE) return;
         process(event.channelName(), event.messageType(), event.senderId());
     }
 
@@ -35,10 +34,10 @@ public class PiResponseListener {
     public void process(String channelName, MessageType messageType, String senderId) {
         if (messageType != MessageType.DONE && messageType != MessageType.DECLINE) return;
 
-        Matcher m = CHANNEL_PATTERN.matcher(channelName);
-        if (!m.matches()) return;
+        Matcher matcher = CHANNEL_PATTERN.matcher(channelName);
+        if (!matcher.matches()) return;
 
-        UUID deviationId = UUID.fromString(m.group(1));
+        UUID deviationId = UUID.fromString(matcher.group(1));
         ProtocolDeviation deviation = ProtocolDeviation.findById(deviationId);
         if (deviation == null) return;
         if (deviation.piApprovalStatus != PiApprovalStatus.COMMANDED) return;

@@ -24,7 +24,7 @@ public class TrialResource {
         @NotNull TrialPhase phase,
         @NotBlank String sponsor,
         @Positive int targetEnrollment,
-        String sponsorNotificationConnectorId,
+        @Size(max = 64) String sponsorNotificationConnectorId,
         @Size(max = 2048) String sponsorNotificationDestination
     ) {}
 

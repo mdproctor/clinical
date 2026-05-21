@@ -50,6 +50,29 @@ Before any git operation, run `git rev-parse --show-toplevel` to confirm which r
 - Promotion to project repo is always explicit — never automatic
 - Workspace branches mirror project branches — switch both together
 
+## Peer Repos — Hard Boundary
+
+**This session owns exactly two repos: the workspace and the project repo.**
+Every other casehubio repo is a peer repo with its own Claude session.
+
+Peer repos (never commit or push to these from this session):
+- `/Users/mdproctor/claude/casehub/parent` and all paths under it
+- `/Users/mdproctor/claude/casehub/engine`
+- `/Users/mdproctor/claude/casehub/ledger`
+- `/Users/mdproctor/claude/casehub/work`
+- `/Users/mdproctor/claude/casehub/qhorus`
+- `/Users/mdproctor/claude/casehub/connectors`
+- `/Users/mdproctor/claude/casehub/devtown`
+- `/Users/mdproctor/claude/casehub/aml`
+- Any other sibling directory under `/Users/mdproctor/claude/casehub/`
+
+**When a cross-repo doc change is needed** (e.g. `docs/PLATFORM.md`,
+`docs/repos/casehub-clinical.md` in the parent): file a GitHub issue on
+`casehubio/parent` describing the change — never edit or commit directly.
+
+Skills that check this (implementation-doc-sync, work-end, handover) must
+read this section before deciding where to commit doc changes.
+
 ## Routing
 
 | Artifact   | Destination | Notes |

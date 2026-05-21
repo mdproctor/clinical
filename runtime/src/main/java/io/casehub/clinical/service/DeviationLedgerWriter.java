@@ -66,6 +66,17 @@ public class DeviationLedgerWriter {
         ledgerEntryRepository.save(entry);
     }
 
+    public void writeSponsorNotifiedEntry(ProtocolDeviation dev, Instant notifiedAt, boolean delivered) {
+        ProtocolDeviationLedgerEntry entry = baseEntry(dev);
+        entry.entryType = LedgerEntryType.EVENT;
+        entry.actorId = SYSTEM_ACTOR;
+        entry.actorType = ActorType.SYSTEM;
+        entry.actorRole = delivered ? "sponsor-notifier" : "sponsor-notifier-failed";
+        entry.occurredAt = notifiedAt;
+        entry.sponsorNotifiedAt = delivered ? notifiedAt : null;
+        ledgerEntryRepository.save(entry);
+    }
+
     private ProtocolDeviationLedgerEntry baseEntry(ProtocolDeviation dev) {
         ProtocolDeviationLedgerEntry entry = new ProtocolDeviationLedgerEntry();
         entry.id = UUID.randomUUID();

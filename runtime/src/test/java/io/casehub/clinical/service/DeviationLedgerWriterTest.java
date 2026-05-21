@@ -165,6 +165,47 @@ class DeviationLedgerWriterTest {
         assertThat(entry.actorRole).isEqualTo("deviation-expiration-job");
     }
 
+    @Test
+    void writeSponsorNotifiedEntry_sets_sponsor_notifier_role_and_notified_at_when_delivered() {
+        when(ledgerEntryRepository.findLatestBySubjectId(dev.id))
+            .thenReturn(Optional.of(existingEntry(2)));
+        ArgumentCaptor<ProtocolDeviationLedgerEntry> cap =
+            ArgumentCaptor.forClass(ProtocolDeviationLedgerEntry.class);
+
+        writer.writeSponsorNotifiedEntry(dev, FIXED_INSTANT, true);
+
+        verify(ledgerEntryRepository).save(cap.capture());
+        ProtocolDeviationLedgerEntry entry = cap.getValue();
+        assertThat(entry.actorRole).isEqualTo("sponsor-notifier");
+        assertThat(entry.actorType).isEqualTo(ActorType.SYSTEM);
+        assertThat(entry.entryType).isEqualTo(LedgerEntryType.EVENT);
+        assertThat(entry.occurredAt).isEqualTo(FIXED_INSTANT);
+        assertThat(entry.sponsorNotifiedAt).isEqualTo(FIXED_INSTANT);
+        assertThat(entry.sequenceNumber).isEqualTo(3);
+    }
+
+    @Test
+    void writeSponsorNotifiedEntry_sets_failed_role_and_null_notified_at_when_not_delivered() {
+        when(ledgerEntryRepository.findLatestBySubjectId(dev.id))
+            .thenReturn(Optional.empty());
+        ArgumentCaptor<ProtocolDeviationLedgerEntry> cap =
+            ArgumentCaptor.forClass(ProtocolDeviationLedgerEntry.class);
+
+        writer.writeSponsorNotifiedEntry(dev, FIXED_INSTANT, false);
+
+        verify(ledgerEntryRepository).save(cap.capture());
+        ProtocolDeviationLedgerEntry entry = cap.getValue();
+        assertThat(entry.actorRole).isEqualTo("sponsor-notifier-failed");
+        assertThat(entry.sponsorNotifiedAt).isNull();
+        assertThat(entry.sequenceNumber).isEqualTo(1);
+    }
+
+    private ProtocolDeviationLedgerEntry existingEntry(int seq) {
+        ProtocolDeviationLedgerEntry e = new ProtocolDeviationLedgerEntry();
+        e.sequenceNumber = seq;
+        return e;
+    }
+
     private ProtocolDeviationLedgerEntry captureEntry() {
         ArgumentCaptor<LedgerEntry> captor = ArgumentCaptor.forClass(LedgerEntry.class);
         verify(ledgerEntryRepository).save(captor.capture());

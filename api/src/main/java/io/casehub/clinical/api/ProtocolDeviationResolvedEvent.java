@@ -14,5 +14,7 @@ public record ProtocolDeviationResolvedEvent(
     UUID siteId,
     DeviationSeverity severity,
     EscalationRequirement escalationRequirement,
-    PiApprovalStatus terminalStatus
+    PiApprovalStatus terminalStatus,
+    String deviationType,
+    String piId
 ) {}

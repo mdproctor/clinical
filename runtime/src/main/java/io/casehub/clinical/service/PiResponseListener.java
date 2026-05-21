@@ -61,7 +61,9 @@ public class PiResponseListener {
             deviation.id, deviation.siteId, deviation.severity,
             deviation.escalationRequirement != null
                 ? deviation.escalationRequirement : EscalationRequirement.NONE,
-            deviation.piApprovalStatus
+            deviation.piApprovalStatus,
+            deviation.deviationType,
+            senderId
         ));
     }
 }

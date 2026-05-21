@@ -29,33 +29,18 @@ public class AdverseEventService {
         ae.reportedAt = Instant.now();
         ae.slaDeadline = ae.reportedAt.plus(ae.grade.sla().orElseThrow());
 
-        var workItem = workItemService.create(new WorkItemCreateRequest(
-            "Adverse Event — " + ae.grade.label(),
-            "Grade " + ae.grade.label() + " AE for enrollment " + ae.enrollmentId +
-                ". GCP SLA: " + ae.grade.sla().orElseThrow().toHours() + "h from " + ae.reportedAt,
-            "adverse-event",
-            "adverse-event-review",
-            priority(ae),
-            null,
-            candidateGroups(ae),
-            null,
-            null,
-            "system",
-            payload(ae),
-            ae.slaDeadline,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,  // templateId (UUID)
-            null,  // permittedOutcomes (List<String>)
-            null,  // inputDataSchema
-            null,  // outputDataSchema
-            null   // (additional field in current casehub-work 0.2-SNAPSHOT)
-        ));
+        var workItem = workItemService.create(WorkItemCreateRequest.builder()
+            .title("Adverse Event — " + ae.grade.label())
+            .description("Grade " + ae.grade.label() + " AE for enrollment " + ae.enrollmentId +
+                ". GCP SLA: " + ae.grade.sla().orElseThrow().toHours() + "h from " + ae.reportedAt)
+            .category("adverse-event")
+            .formKey("adverse-event-review")
+            .priority(priority(ae))
+            .candidateGroups(candidateGroups(ae))
+            .createdBy("system")
+            .payload(payload(ae))
+            .claimDeadline(ae.slaDeadline)
+            .build());
         ae.workItemId = workItem.id;
         ae.persist();
 

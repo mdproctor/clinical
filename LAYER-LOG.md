@@ -297,6 +297,7 @@ Three services write to the same ledger chain, so `sequenceNumber` ownership mat
 **Blog:** `blog/2026-05-12-mdp02-adverse-event-sla-wiring.md` — three casehub-ledger surprises
 **Key files:**
 - `runtime/src/main/java/io/casehub/clinical/ledger/AdverseEventLedgerEntry.java` — ledger subclass in the `ledger` package (not `entity`)
+- `runtime/src/main/java/io/casehub/clinical/service/AdverseEventLedgerWriter.java` — centralised ledger writer; owns `sequenceNumber` via `findLatestBySubjectId`; provides `writeReportEntry`; unit-testable with Mockito
 - `runtime/src/main/resources/db/migration/V1005__ae_ledger_entry.sql` — join table for `AdverseEventLedgerEntry`
 
 ### What it shows
@@ -376,3 +377,11 @@ quarkus.datasource.qhorus.jdbc.transactions=xa
 8. Wrap domain entity persist, WorkItem creation, and ledger write in a single `@Transactional` method — atomic or nothing
 9. Test: verify the `LedgerEntry` is written with correct fields; verify that a simulated ledger write failure rolls back the entity persist and WorkItem creation
 10. When a ledger subclass is written from multiple services: extract a dedicated `@ApplicationScoped` writer bean that owns `sequenceNumber` computation and entry construction for all write sites. Each service injects the writer and calls named methods. The invariant is testable with a mocked repository in isolation. See `DeviationLedgerWriter` and ADR-0002 in `docs/adr/`.
+
+### Extended in clinical#15 — AdverseEventLedgerWriter extracted
+
+**Issue:** casehubio/clinical#15 (part of issue-24-minor-cleanups `[d771025]`)
+**Key files added:**
+- `runtime/src/main/java/io/casehub/clinical/service/AdverseEventLedgerWriter.java` — centralised ledger writer; owns `sequenceNumber` computation via `findLatestBySubjectId`; provides `writeReportEntry`; ready for resolution and escalation entries in later epics
+
+The initial Layer 4 implementation wrote the ledger entry inline in `AdverseEventService`. `AdverseEventLedgerWriter` extracts that into a dedicated `@ApplicationScoped` bean, mirroring `DeviationLedgerWriter` from Layer 3 clinical#14. Motivation: Epic 6 (IRB gate) will write resolution and escalation entries to the same audit chain — without the extracted writer, `sequenceNumber` ownership would be split across multiple services with no single point of truth. The extraction is a preparation step, not a behaviour change: `writeReportEntry` is the only method; `writeResolutionEntry` and similar will be added as later epics land.

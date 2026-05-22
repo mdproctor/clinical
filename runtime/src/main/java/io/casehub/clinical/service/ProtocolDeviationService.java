@@ -60,16 +60,16 @@ public class ProtocolDeviationService {
         Instant responseDeadline = now.plus(requirements.piResponseDeadline());
         String content = buildCommandContent(deviation, responseDeadline);
 
-        messageService.send(
-            channel.id,
-            CLINICAL_SENDER,
-            MessageType.COMMAND,
-            content,
-            deviation.id.toString(),
-            null,
-            null,
-            site.investigatorId,
-            ActorType.SYSTEM
+        messageService.dispatch(
+            io.casehub.qhorus.api.message.MessageDispatch.builder()
+                .channelId(channel.id)
+                .sender(CLINICAL_SENDER)
+                .type(MessageType.COMMAND)
+                .content(content)
+                .correlationId(deviation.id.toString())
+                .target(site.investigatorId)
+                .actorType(ActorType.SYSTEM)
+                .build()
         );
 
         deviation.piCommandChannelName = channelName;

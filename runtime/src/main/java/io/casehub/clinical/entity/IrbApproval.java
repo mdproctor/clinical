@@ -16,6 +16,14 @@ public class IrbApproval extends PanacheEntityBase {
     @Column(name = "site_id", nullable = false)
     public UUID siteId;
 
+    /**
+     * The deviation this IRB approval is for. Nullable for legacy stubs;
+     * always set on new rows created by IrbDeviationCaseService.
+     * Added in V109.
+     */
+    @Column(name = "deviation_id")
+    public UUID deviationId;
+
     @Column(name = "review_type", nullable = false)
     public String reviewType;
 

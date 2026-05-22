@@ -7,6 +7,7 @@ import io.casehub.clinical.api.spi.AdverseEventEscalationRequirements;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ public class AeEscalationCaseService {
     @Inject ClinicalAdverseEventCaseHub caseHub;
     @Inject AdverseEventEscalationPolicy policy;
 
+    @Transactional
     public void onAdverseEventReported(@ObservesAsync AdverseEventReportedEvent event) {
         AdverseEventEscalationRequirements requirements = policy.evaluate(
                 new AdverseEventContext(event.aeId(), event.enrollmentId(), event.siteId(), event.grade()));

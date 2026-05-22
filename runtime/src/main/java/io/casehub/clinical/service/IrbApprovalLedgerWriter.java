@@ -32,12 +32,13 @@ public class IrbApprovalLedgerWriter {
         entry.actorId = "irb-committee";
         entry.actorType = ActorType.HUMAN;
         entry.actorRole = "IrbCommittee";
-        entry.occurredAt = clock.instant();
+        var now = clock.instant();
+        entry.occurredAt = now;
         entry.irbApprovalId = approval.id;
         entry.deviationId = approval.deviationId;
         entry.irbDecision = approval.decision.name();
         entry.committeeId = approval.committeeId;
-        entry.decidedAt = clock.instant();
+        entry.decidedAt = now;
         ledgerEntryRepository.save(entry);
     }
 

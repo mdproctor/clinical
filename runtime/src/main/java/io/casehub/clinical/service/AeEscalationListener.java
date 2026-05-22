@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -20,6 +21,9 @@ import org.jboss.logging.Logger;
  * <p>Discriminates AE escalation cases by presence of {@code aeId} in the case
  * context (set at case start by AeEscalationCaseService). Deviation review cases
  * and other cases lack this key and are silently ignored.
+ *
+ * <p>Note: {@code CaseLifecycleEvent} is from {@code io.casehub.engine.internal.event}
+ * — an internal package. Tracked as casehubio/clinical#28 to promote to a public SPI.
  */
 @ApplicationScoped
 public class AeEscalationListener {
@@ -31,6 +35,7 @@ public class AeEscalationListener {
     @Inject AeEscalationLedgerWriter ledgerWriter;
     @Inject Event<AeEscalationCompletedEvent> completedEvents;
 
+    @Transactional
     public void onCaseLifecycle(@ObservesAsync CaseLifecycleEvent event) {
         if (!"CaseCompleted".equals(event.eventType())) return;
 
@@ -51,7 +56,14 @@ public class AeEscalationListener {
         }
 
         UUID enrollmentId = resolveUuid(instance.getCaseContext().getPath("enrollmentId"));
+        if (enrollmentId == null) {
+            LOG.warnf("AeEscalationListener: enrollmentId missing from case context for aeId=%s — ledger write skipped", aeId);
+            return;
+        }
+
         CtcaeGrade grade = resolveGrade(instance.getCaseContext().getPath("grade"));
+        // safetyReview is the full WorkItem resolution mapped by outputMapping: "{ safetyReview: . }"
+        // The resolution body must include an "outcome" field — e.g. {"outcome":"REVIEWED","reviewedAt":"..."}
         String safetyReviewOutcome = resolveOutcome(instance.getCaseContext().getPath("safetyReview"));
         boolean dsmbEscalated = instance.getCaseContext().getPath("dsmbEscalation") != null;
         Instant completedAt = Instant.now();

@@ -69,7 +69,11 @@ class IrbGateLifecycleTest {
         String resolution = "{\"decision\":\"APPROVED\",\"committeeId\":\"irb-001\",\"decidedAt\":\"2026-05-22T12:00:00Z\"}";
         workItemService.completeFromSystem(irbWorkItem.id, "irb-committee", resolution);
 
-        // Verify IrbDecisionListener updated the IrbApproval (in-process CDI delivery is reliable)
+        // Verify in-process CDI delivery to IrbDecisionListener (in-process — reliable)
+        await().atMost(3, SECONDS).pollInterval(100, MILLISECONDS)
+                .untilAsserted(() -> assertThat(completionCapture.wasCompleted(irbWorkItem.id)).isTrue());
+
+        // Verify IrbDecisionListener updated the IrbApproval
         await().atMost(3, SECONDS).pollInterval(100, MILLISECONDS)
                 .untilAsserted(() ->
                         assertThat(approvalDecision()).isEqualTo(IrbDecision.APPROVED));

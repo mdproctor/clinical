@@ -6,5 +6,7 @@ public enum IrbDecision {
     APPROVED,
     REJECTED,
     /** Committee requests additional information before deciding. Not a final rejection. */
-    DEFERRED
+    DEFERRED,
+    /** 72-hour IRB WorkItem expired before committee decided. */
+    EXPIRED
 }

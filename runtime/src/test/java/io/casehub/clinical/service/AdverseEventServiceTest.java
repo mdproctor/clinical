@@ -63,10 +63,28 @@ class AdverseEventServiceTest {
 
     @Test
     @Transactional
-    void workItemId_is_set_after_report() {
+    void grade1_workItemId_is_set_directly() {
+        AdverseEvent ae = newAe(CtcaeGrade.GRADE_1);
+        service.reportAdverseEvent(ae);
+        assertThat(ae.workItemId).as("Grade 1 uses direct WorkItem creation").isNotNull();
+    }
+
+    @Test
+    @Transactional
+    void grade3_workItemId_is_null_engine_manages_it() {
         AdverseEvent ae = newAe(CtcaeGrade.GRADE_3);
         service.reportAdverseEvent(ae);
-        assertThat(ae.workItemId).isNotNull();
+        assertThat(ae.workItemId)
+            .as("Grade 3 is engine-managed; workItemId set by engine, not service")
+            .isNull();
+    }
+
+    @Test
+    @Transactional
+    void grade4_workItemId_is_null_engine_manages_it() {
+        AdverseEvent ae = newAe(CtcaeGrade.GRADE_4);
+        service.reportAdverseEvent(ae);
+        assertThat(ae.workItemId).isNull();
     }
 
     @Test

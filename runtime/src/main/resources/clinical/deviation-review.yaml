@@ -23,5 +23,5 @@ spec:
         title: "IRB consultation required — protocol deviation"
         expiresIn: PT72H
         candidateGroups: [irb-committee]
-        inputSchema: "{ deviationId: .deviationId, severity: .severity }"
+        inputMapping: "{ deviationId: .deviationId, severity: .severity }"
         outputMapping: "{ irbConsultation: . }"

@@ -27,7 +27,7 @@ spec:
         title: "Senior safety monitor review — adverse event"
         expiresIn: PT24H
         candidateGroups: [senior-safety-monitors]
-        inputSchema: "{ aeId: .aeId, grade: .grade, enrollmentId: .enrollmentId }"
+        inputMapping: "{ aeId: .aeId, grade: .grade, enrollmentId: .enrollmentId }"
         outputMapping: "{ safetyReview: . }"
 
     - name: dsmb-escalation
@@ -37,5 +37,5 @@ spec:
         title: "DSMB escalation — Grade 4+ adverse event"
         expiresIn: PT24H
         candidateGroups: [dsmb]
-        inputSchema: "{ aeId: .aeId, grade: .grade, enrollmentId: .enrollmentId }"
+        inputMapping: "{ aeId: .aeId, grade: .grade, enrollmentId: .enrollmentId }"
         outputMapping: "{ dsmbEscalation: . }"

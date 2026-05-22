@@ -140,7 +140,8 @@ class ShowcaseScenarioTest {
                       trialId, siteAId, patientA)
             .then()
                 .statusCode(201)
-                .body("workItemId", notNullValue())
+                // Grade 3 is engine-managed: workItemId is null; engine creates WorkItems via ae-escalation.yaml
+                .body("workItemId", nullValue())
                 .body("grade", equalTo("GRADE_3"))
                 .extract().path("slaDeadline");
 
@@ -177,7 +178,8 @@ class ShowcaseScenarioTest {
                       trialId, siteBId, patientB)
             .then()
                 .statusCode(201)
-                .body("workItemId", notNullValue())
+                // Grade 5 is engine-managed: workItemId is null; engine creates WorkItems via ae-escalation.yaml
+                .body("workItemId", nullValue())
                 .body("grade", equalTo("GRADE_5"))
                 .extract().path("slaDeadline");
 

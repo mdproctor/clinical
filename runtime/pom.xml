@@ -67,6 +67,13 @@
       <artifactId>casehub-engine-persistence-memory</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- casehub-engine-common provides io.casehub.engine.internal.jq.JQEvaluator required by
+         JQExpressionEngine for YAML case definition expression validation at startup. -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-engine-common</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>io.quarkus</groupId>

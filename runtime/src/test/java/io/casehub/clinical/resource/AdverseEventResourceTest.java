@@ -6,7 +6,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 @QuarkusTest
 class AdverseEventResourceTest {
@@ -45,7 +48,10 @@ class AdverseEventResourceTest {
     // ── Happy path ────────────────────────────────────────────────────────────
 
     @Test
-    void grade3_ae_returns_201_with_workItemId_and_slaDeadline() {
+    void grade3_ae_returns_201_engine_managed_no_direct_workItemId() {
+        // Grade 3+ AEs are engine-managed: the service fires AdverseEventReportedEvent and
+        // does NOT create a WorkItem directly. workItemId is null on the AE record — the engine
+        // creates WorkItems via humanTask bindings in ae-escalation.yaml.
         UUID trialId = createTrial();
         UUID siteId = addSite(trialId);
         UUID enrollmentId = enrollPatient(trialId, siteId);
@@ -60,10 +66,32 @@ class AdverseEventResourceTest {
                   trialId, siteId, enrollmentId)
         .then()
             .statusCode(201)
-            .body("workItemId", notNullValue())
+            .body("workItemId", nullValue())
             .body("slaDeadline", notNullValue())
             .body("grade", equalTo("GRADE_3"))
             .header("Location", containsString("/adverse-events/"));
+    }
+
+    @Test
+    void grade1_ae_returns_201_with_direct_workItemId() {
+        // Grade 1/2 AEs use direct WorkItem creation (Layer 2 path preserved).
+        UUID trialId = createTrial();
+        UUID siteId = addSite(trialId);
+        UUID enrollmentId = enrollPatient(trialId, siteId);
+
+        given()
+            .contentType("application/json")
+            .body("""
+                {"grade":"GRADE_1","occurredAt":"%s"}
+                """.formatted(Instant.now().minusSeconds(3600)))
+        .when()
+            .post("/trials/{t}/sites/{s}/patients/{e}/adverse-events",
+                  trialId, siteId, enrollmentId)
+        .then()
+            .statusCode(201)
+            .body("workItemId", notNullValue())
+            .body("slaDeadline", notNullValue())
+            .body("grade", equalTo("GRADE_1"));
     }
 
     @Test

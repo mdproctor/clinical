@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doNothing;
 class SponsorNotificationIntegrationTest {
 
     @Inject PiResponseListener piResponseListener;
+    @Inject TestSlackConnector slackConnector;
     @InjectMock DeviationLedgerWriter ledgerWriter;
 
     private UUID deviationId;
@@ -32,8 +33,7 @@ class SponsorNotificationIntegrationTest {
     @BeforeEach
     @Transactional
     void setUp() {
-        TestSlackConnector.sent.clear();
-        TestSlackConnector.shouldThrow = false;
+        slackConnector.reset();
 
         // Suppress all ledger writes
         doNothing().when(ledgerWriter).writeResolutionEntry(any(), any(), any(), any(), any());
@@ -80,13 +80,13 @@ class SponsorNotificationIntegrationTest {
         piResponseListener.process(channelName, MessageType.DONE, "dr-jones@v1");
 
         Awaitility.await().atMost(Duration.ofSeconds(5)).until(() ->
-            !TestSlackConnector.sent.isEmpty()
+            !slackConnector.sent().isEmpty()
         );
 
-        assertThat(TestSlackConnector.sent).hasSize(1);
-        assertThat(TestSlackConnector.sent.get(0).destination())
+        assertThat(slackConnector.sent()).hasSize(1);
+        assertThat(slackConnector.sent().get(0).destination())
             .isEqualTo("https://hooks.slack.com/integration-test");
-        assertThat(TestSlackConnector.sent.get(0).body())
+        assertThat(slackConnector.sent().get(0).body())
             .contains("INFORMED_CONSENT")
             .contains("dr-jones@v1")
             .contains("corrective action committed");
@@ -97,16 +97,16 @@ class SponsorNotificationIntegrationTest {
         piResponseListener.process(channelName, MessageType.DECLINE, "dr-jones@v1");
 
         Awaitility.await().atMost(Duration.ofSeconds(5)).until(() ->
-            !TestSlackConnector.sent.isEmpty()
+            !slackConnector.sent().isEmpty()
         );
 
-        assertThat(TestSlackConnector.sent).hasSize(1);
-        assertThat(TestSlackConnector.sent.get(0).body()).contains("refused to authorise");
+        assertThat(slackConnector.sent()).hasSize(1);
+        assertThat(slackConnector.sent().get(0).body()).contains("refused to authorise");
     }
 
     @Test
     void connector_delivery_failure_does_not_propagate_exception() {
-        TestSlackConnector.shouldThrow = true;
+        slackConnector.setShouldThrow(true);
 
         // Must complete without exception even when connector throws
         piResponseListener.process(channelName, MessageType.DONE, "dr-jones@v1");

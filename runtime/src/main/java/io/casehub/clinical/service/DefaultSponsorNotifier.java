@@ -63,7 +63,7 @@ public class DefaultSponsorNotifier implements SponsorNotifier {
     }
 
     private String buildTitle(SponsorNotificationRequest req) {
-        return "[MAJOR Deviation] " + req.deviationType() + " — " + req.terminalStatus().name();
+        return "[" + req.severity().name() + " Deviation] " + req.deviationType() + " — " + req.terminalStatus().name();
     }
 
     private String buildBody(SponsorNotificationRequest req) {

@@ -4,7 +4,7 @@ import io.casehub.clinical.api.ProtocolDeviationResolvedEvent;
 import io.casehub.clinical.api.model.EscalationRequirement;
 import io.casehub.clinical.api.model.PiApprovalStatus;
 import io.casehub.clinical.entity.ProtocolDeviation;
-import io.casehub.ledger.api.model.ActorType;
+import io.casehub.platform.api.identity.ActorType;
 import io.casehub.qhorus.runtime.message.CommitmentService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;

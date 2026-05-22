@@ -3,10 +3,6 @@ package io.casehub.clinical.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.clinical.entity.AdverseEvent;
-import io.casehub.clinical.ledger.AdverseEventLedgerEntry;
-import io.casehub.ledger.api.model.ActorType;
-import io.casehub.ledger.api.model.LedgerEntryType;
-import io.casehub.ledger.runtime.repository.LedgerEntryRepository;
 import io.casehub.work.runtime.model.WorkItemCreateRequest;
 import io.casehub.work.runtime.model.WorkItemPriority;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -15,13 +11,12 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
 
 @ApplicationScoped
 public class AdverseEventService {
 
     @Inject WorkItemService workItemService;
-    @Inject LedgerEntryRepository ledgerRepo;
+    @Inject AdverseEventLedgerWriter ledgerWriter;
     @Inject ObjectMapper objectMapper;
 
     @Transactional
@@ -44,25 +39,7 @@ public class AdverseEventService {
         ae.workItemId = workItem.id;
         ae.persist();
 
-        writeLedgerEntry(ae);
-    }
-
-    private void writeLedgerEntry(AdverseEvent ae) {
-        AdverseEventLedgerEntry entry = new AdverseEventLedgerEntry();
-        entry.id = UUID.randomUUID();
-        entry.subjectId = ae.id;
-        entry.sequenceNumber = 1;
-        entry.entryType = LedgerEntryType.EVENT;
-        entry.actorId = "system";
-        entry.actorType = ActorType.SYSTEM;
-        entry.actorRole = "AdverseEventReporter";
-        entry.occurredAt = Instant.now();
-        entry.adverseEventId = ae.id;
-        entry.enrollmentId = ae.enrollmentId;
-        entry.ctcaeGrade = ae.grade.name();
-        entry.reportedAt = ae.reportedAt;
-        entry.slaDeadline = ae.slaDeadline;
-        ledgerRepo.save(entry);
+        ledgerWriter.writeReportEntry(ae);
     }
 
     private WorkItemPriority priority(AdverseEvent ae) {

@@ -7,7 +7,7 @@ import io.casehub.clinical.api.spi.DeviationResponseRequirements;
 import io.casehub.clinical.entity.ClinicalTrial;
 import io.casehub.clinical.entity.ProtocolDeviation;
 import io.casehub.clinical.entity.TrialSite;
-import io.casehub.ledger.api.model.ActorType;
+import io.casehub.platform.api.identity.ActorType;
 import io.casehub.qhorus.api.channel.ChannelSemantic;
 import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.channel.ChannelService;

@@ -112,36 +112,58 @@ class SponsorNotificationListenerTest {
 
     @Test
     @Transactional
-    void missing_connector_config_does_not_call_spi() {
-        UUID noConfigTrialId = UUID.randomUUID();
-        UUID noConfigSiteId = UUID.randomUUID();
+    void both_connector_fields_null_does_not_call_spi() {
+        TrialSite site = siteWithTrial(null, null);
+        listener.onDeviationResolved(sponsorNotificationEvent(site.id));
+        verifyNoInteractions(sponsorNotifier);
+    }
+
+    @Test
+    @Transactional
+    void partial_config_connectorId_null_does_not_call_spi() {
+        TrialSite site = siteWithTrial(null, "https://hooks.slack.com/test");
+        listener.onDeviationResolved(sponsorNotificationEvent(site.id));
+        verifyNoInteractions(sponsorNotifier);
+    }
+
+    @Test
+    @Transactional
+    void partial_config_destination_null_does_not_call_spi() {
+        TrialSite site = siteWithTrial("slack", null);
+        listener.onDeviationResolved(sponsorNotificationEvent(site.id));
+        verifyNoInteractions(sponsorNotifier);
+    }
+
+    private TrialSite siteWithTrial(String connectorId, String destination) {
+        UUID newTrialId = UUID.randomUUID();
+        UUID newSiteId = UUID.randomUUID();
 
         ClinicalTrial trial = new ClinicalTrial();
-        trial.id = noConfigTrialId;
-        trial.protocolId = "NO-CONFIG";
+        trial.id = newTrialId;
+        trial.protocolId = "TEST-" + newTrialId.toString().substring(0, 8);
         trial.phase = TrialPhase.PHASE_I;
         trial.sponsor = "S";
         trial.targetEnrollment = 1;
         trial.status = TrialStatus.PLANNING;
-        trial.sponsorNotificationConnectorId = null;
-        trial.sponsorNotificationDestination = null;
+        trial.sponsorNotificationConnectorId = connectorId;
+        trial.sponsorNotificationDestination = destination;
         trial.persist();
 
         TrialSite site = new TrialSite();
-        site.id = noConfigSiteId;
-        site.trialId = noConfigTrialId;
+        site.id = newSiteId;
+        site.trialId = newTrialId;
         site.investigatorId = "x";
         site.status = SiteStatus.PENDING;
         site.persist();
 
-        ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
-            UUID.randomUUID(), noConfigSiteId, DeviationSeverity.MAJOR,
+        return site;
+    }
+
+    private ProtocolDeviationResolvedEvent sponsorNotificationEvent(UUID siteId) {
+        return new ProtocolDeviationResolvedEvent(
+            UUID.randomUUID(), siteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
             "CONSENT_DEVIATION", "dr-smith@v1"
         );
-
-        listener.onDeviationResolved(event);
-
-        verifyNoInteractions(sponsorNotifier);
     }
 }

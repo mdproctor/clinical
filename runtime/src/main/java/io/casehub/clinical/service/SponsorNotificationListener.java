@@ -28,10 +28,13 @@ public class SponsorNotificationListener {
         }
 
         ClinicalTrial trial = ClinicalTrial.findById(site.trialId);
-        if (trial == null
-                || trial.sponsorNotificationConnectorId == null
-                || trial.sponsorNotificationDestination == null) {
-            Log.warnf("Trial %s has no sponsor notification config — skipping", site.trialId);
+        if (trial == null) {
+            Log.warnf("Trial %s not found — sponsor notification skipped", site.trialId);
+            return;
+        }
+        if (trial.sponsorNotificationConnectorId == null || trial.sponsorNotificationDestination == null) {
+            Log.warnf("Trial %s has incomplete sponsor notification config (connectorId=%s, destination=%s) — skipping",
+                site.trialId, trial.sponsorNotificationConnectorId, trial.sponsorNotificationDestination);
             return;
         }
 

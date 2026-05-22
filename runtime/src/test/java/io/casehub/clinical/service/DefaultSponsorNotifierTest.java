@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 class DefaultSponsorNotifierTest {
 
     @Inject DefaultSponsorNotifier notifier;
+    @Inject TestSlackConnector slackConnector;
     @InjectMock DeviationLedgerWriter ledgerWriter;
 
     private UUID deviationId;
@@ -32,8 +33,7 @@ class DefaultSponsorNotifierTest {
     @BeforeEach
     @Transactional
     void setUp() {
-        TestSlackConnector.sent.clear();
-        TestSlackConnector.shouldThrow = false;
+        slackConnector.reset();
 
         deviationId = UUID.randomUUID();
         siteId = UUID.randomUUID();
@@ -54,8 +54,8 @@ class DefaultSponsorNotifierTest {
     void escalated_notification_sends_to_connector_and_writes_delivered_ledger_entry() {
         notifier.notify(request(PiApprovalStatus.ESCALATED, "dr-smith@v1", "slack"));
 
-        assertThat(TestSlackConnector.sent).hasSize(1);
-        assertThat(TestSlackConnector.sent.get(0).body())
+        assertThat(slackConnector.sent()).hasSize(1);
+        assertThat(slackConnector.sent().get(0).body())
             .contains("CONSENT_DEVIATION")
             .contains("dr-smith@v1")
             .contains("corrective action committed");
@@ -67,7 +67,7 @@ class DefaultSponsorNotifierTest {
     void unknown_connector_id_writes_failed_ledger_entry_without_sending() {
         notifier.notify(request(PiApprovalStatus.ESCALATED, "dr-smith@v1", "unknown-connector"));
 
-        assertThat(TestSlackConnector.sent).isEmpty();
+        assertThat(slackConnector.sent()).isEmpty();
         verify(ledgerWriter).writeSponsorNotifiedEntry(
             any(ProtocolDeviation.class), any(Instant.class), eq(false));
     }
@@ -83,8 +83,8 @@ class DefaultSponsorNotifierTest {
 
         notifier.notify(req);
 
-        assertThat(TestSlackConnector.sent).hasSize(1);
-        assertThat(TestSlackConnector.sent.get(0).body())
+        assertThat(slackConnector.sent()).hasSize(1);
+        assertThat(slackConnector.sent().get(0).body())
             .contains("deadline expired")
             .contains("CONSENT_DEVIATION")
             .doesNotContain("null");
@@ -94,12 +94,29 @@ class DefaultSponsorNotifierTest {
 
     @Test
     void connector_send_exception_writes_failed_entry_without_rethrowing() {
-        TestSlackConnector.shouldThrow = true;
+        slackConnector.setShouldThrow(true);
 
         notifier.notify(request(PiApprovalStatus.ESCALATED, "dr-smith@v1", "slack"));  // must not throw
 
         verify(ledgerWriter).writeSponsorNotifiedEntry(
             any(ProtocolDeviation.class), any(Instant.class), eq(false));
+    }
+
+    @Test
+    void notification_title_reflects_actual_severity() {
+        SponsorNotificationRequest req = new SponsorNotificationRequest(
+            UUID.randomUUID(), siteId, deviationId,
+            "PROTOCOL_PROCEDURE", DeviationSeverity.CRITICAL,
+            PiApprovalStatus.ESCALATED, "dr-smith@v1",
+            "slack", "https://hooks.slack.com/test"
+        );
+
+        notifier.notify(req);
+
+        assertThat(slackConnector.sent()).hasSize(1);
+        assertThat(slackConnector.sent().get(0).title())
+            .startsWith("[CRITICAL Deviation]")
+            .doesNotContain("[MAJOR");
     }
 
     private SponsorNotificationRequest request(PiApprovalStatus status, String piId, String connectorId) {

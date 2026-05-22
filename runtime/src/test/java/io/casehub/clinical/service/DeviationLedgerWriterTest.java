@@ -5,7 +5,7 @@ import io.casehub.clinical.api.model.EscalationRequirement;
 import io.casehub.clinical.api.model.PiApprovalStatus;
 import io.casehub.clinical.entity.ProtocolDeviation;
 import io.casehub.clinical.ledger.ProtocolDeviationLedgerEntry;
-import io.casehub.ledger.api.model.ActorType;
+import io.casehub.platform.api.identity.ActorType;
 import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.runtime.model.LedgerEntry;
 import io.casehub.ledger.runtime.repository.LedgerEntryRepository;

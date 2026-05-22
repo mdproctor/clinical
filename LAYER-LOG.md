@@ -1,8 +1,8 @@
 # casehub-clinical Agentic Harness — Layer Log
 
-Structured record of what was built at each layer, optimised for LLM consumption and future tutorial generation. Correlates with blog entries in the workspace `blog/`, git history, and GitHub issues.
+Structured record of what was built at each layer, optimised for LLM consumption. Each entry is the raw material needed to reproduce the layer in a different domain harness. Correlates with blog entries in the workspace `blog/`, git history, and GitHub issues.
 
-Each entry documents one layer of the adoption sequence — ordered for learning, not for chronology. Entries are written when work on a layer begins; sections marked `🔲` are placeholders with context for future sessions to fill in.
+Entries are ordered for learning, not chronology. Each entry is complete when the layer closes — no placeholders.
 
 Cross-references:
 - Blog entries: workspace `blog/` (staged; published to mdproctor.github.io via `publish-blog`)

@@ -186,6 +186,58 @@ Consult these before making domain model, compliance, or grading decisions:
 
 ---
 
+## Design Phase References
+
+Read these **before designing**, not after. The concern column tells you when each applies.
+
+### Domain model and API design
+
+| Concern | Read first |
+|---------|-----------|
+| Designing a new entity, record, or SPI | `casehub-clinical.md` — does clinical already own this? `PLATFORM.md` capability ownership table — does the foundation own it? |
+| Module placement (`api/` vs `runtime/`) | Active Record exception: clinical has no downstream JPA consumers — Panache entities live in `runtime/` only; `api/` holds enums and constants only. See LAYER-LOG.md architectural note. |
+| FHIR field names and entity relationships | [FHIR ResearchStudy / ResearchSubject](https://hl7.org/fhir/researchstudy.html) — canonical field names |
+| Adverse event grade SLAs | CTCAE v5.0 + ICH E6(R3) §5.17 — Grade 3/4 = 24h, Grade 5 = 1h (internal), Grade 1/2 = 7d |
+| Compliance requirement for a new feature | `use-case-analysis.md §8.1` — GCP gap table; 21 CFR Part 312 for FDA IND |
+
+### Tutorial layer design
+
+| Concern | Read first |
+|---------|-----------|
+| Deciding which layer a feature belongs in | `tutorial-strategy.md §7` — layer teaching objectives and what each layer must NOT include |
+| Writing gap comments | Clinical does not use `NaiveXxxService @DefaultBean` displacement (see LAYER-LOG architectural note). Gap comments go in service and resource layer as `// Layer N: <entity>.persist() — no <concern>` inline notes, not in a displaced naive class. |
+| Documenting a completed layer | LAYER-LOG.md — write the entry before closing the issue. Each entry: What it shows, Gap comments, Key wiring, Gotchas, Pattern to replicate. |
+| Understanding the compliance gap being closed | The compliance table in `Why Clinical Trials` — each LAYER-LOG entry references a row from this table |
+
+### Foundation integration
+
+| Concern | Read first |
+|---------|-----------|
+| casehub-work (WorkItem, SLA, escalation) | `../parent/docs/repos/casehub-work.md` |
+| casehub-qhorus (COMMAND/RESPONSE/DONE/DECLINE, Commitment) | `../parent/docs/repos/casehub-qhorus.md` |
+| casehub-ledger (Merkle audit, GDPR erasure, LedgerEntry subclasses) | `../parent/docs/repos/casehub-ledger.md`; LedgerEntry subclasses → `io.casehub.clinical.ledger` package |
+| casehub-engine (CasePlanModel, bindings, sub-cases) | `../parent/docs/repos/casehub-engine.md` |
+| Boundary check — foundation or clinical? | `PLATFORM.md` boundary rules; Layering Rule section in this file |
+
+### Persistence and migrations
+
+| Concern | Read first |
+|---------|-----------|
+| New Flyway migration | Clinical uses datasource-scoped dirs — see Flyway migration structure in Ecosystem Conventions |
+| Migration version number | V100–V999 clinical domain (default datasource); V1005+ ledger subclass join tables (qhorus datasource) |
+| LedgerEntry subclass | Must live in `io.casehub.clinical.ledger` — never in `io.casehub.clinical.entity`; Panache cannot span two PUs |
+| Cross-datasource `@Transactional` | Requires XA on both datasources — see Multi-datasource XA in Ecosystem Conventions |
+
+### Testing
+
+| Concern | Read first |
+|---------|-----------|
+| `@QuarkusTest` setup | Test `application.properties` — drop-and-create + Flyway disabled; XA transactions; reactive suppression |
+| Single-class test run | `mvn test -pl runtime -Dtest=ClassName --batch-mode` — requires `api` installed first |
+| Testing a writer bean (e.g. `AdverseEventLedgerWriter`) | Unit test with Mockito-mocked `LedgerEntryRepository`; verify sequence number logic without Quarkus |
+
+---
+
 ## What casehub-clinical Must Build
 
 ### Domain Model
@@ -253,9 +305,25 @@ Trial-level binding fires on aggregated context from all site sub-cases — no s
 | GDPR consent withdrawal (Art.17) | LedgerErasureService ✅ |
 | FDA Merkle audit trail | CaseLedgerEntry ✅ (2026-04-26) |
 | EU AI Act Art.12 ComplianceSupplement | casehub-ledger ✅ |
+| HITL WorkItem → case signal (IRB gate) | work#136 ✅ closed; `WorkItemLifecycleAdapter` in engine/work-adapter ✅ — IRB gate unblocked |
 | Trust-weighted safety agent routing | P1.3 TrustWeightedSelectionStrategy wired in engine |
 | LLM protocol amendment supervisor | LlmPlanningStrategy SPI (engine) |
-| HITL WorkItem → case signal (IRB gate) | casehub-work-adapter wiring pending — tracked casehubio/work#136 ❌ BLOCKED |
+
+### Tutorial Structure (layer-by-layer, from tutorial-strategy.md §7)
+
+```
+Layer 1: naive Java — FHIR R5 domain model, six entities, REST CRUD, no accountability ✅ (Epics 1+2)
+Layer 2: + casehub-work — adverse event SLA (GCP ICH E6(R3) §5.17; Grade 3/4 = 24h) ✅ (Epic 4)
+Layer 3: + casehub-qhorus — PI authorisation COMMAND for protocol deviations ✅ (Epic 5)
+Layer 4: + casehub-ledger — FDA Merkle tamper-evident audit trail ✅ (Epic 4)
+Layer 5: + casehub-engine — IRB gate as engine PlanItem; CRITICAL deviation path (clinical#6)
+Layer 6: multi-site sub-case orchestration — DSMB rollup; blocked on engine#112
+Layer 7: trust routing + comparison vs ClinicalAgent (arXiv 2404.14777)
+```
+
+**Note on layer ordering vs build order:** Layers 2 and 4 were built in the same epic (Epic 4) — tutorial ordering differs from chronological build order. The teaching sequence (SLA → obligation → audit) is preserved in LAYER-LOG.md ordering.
+
+**No `NaiveXxxService @DefaultBean` pattern:** Clinical uses Active Record entities directly (no downstream JPA consumers). CDI displacement is not the mechanism here — each layer adds new services and routes through them. The gaps are structural and documented in LAYER-LOG.md rather than as explicit gap comments in a naive class. See LAYER-LOG.md architectural note.
 
 ### Showcase Scenario
 

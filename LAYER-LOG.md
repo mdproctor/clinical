@@ -385,3 +385,86 @@ quarkus.datasource.qhorus.jdbc.transactions=xa
 - `runtime/src/main/java/io/casehub/clinical/service/AdverseEventLedgerWriter.java` — centralised ledger writer; owns `sequenceNumber` computation via `findLatestBySubjectId`; provides `writeReportEntry`; ready for resolution and escalation entries in later epics
 
 The initial Layer 4 implementation wrote the ledger entry inline in `AdverseEventService`. `AdverseEventLedgerWriter` extracts that into a dedicated `@ApplicationScoped` bean, mirroring `DeviationLedgerWriter` from Layer 3 clinical#14. Motivation: Epic 6 (IRB gate) will write resolution and escalation entries to the same audit chain — without the extracted writer, `sequenceNumber` ownership would be split across multiple services with no single point of truth. The extraction is a preparation step, not a behaviour change: `writeReportEntry` is the only method; `writeResolutionEntry` and similar will be added as later epics land.
+
+---
+
+## Layer 5 — casehub-engine: adaptive protocol paths
+
+**Issues:** casehubio/clinical#6
+
+### What it shows
+
+casehub-engine enters clinical for the first time. Fixed-pipeline service code
+(direct WorkItem creation with hardcoded candidateGroups) is replaced by engine
+case definitions that open different gates based on accumulated context.
+
+**IRB gate** (`deviation-review.yaml`): CRITICAL deviation + PI approval suspends
+the case in WAITING until an IRB committee decides within 72h. All four terminal
+outcomes (APPROVED, REJECTED, DEFERRED, EXPIRED) handled explicitly.
+`IrbDecisionListener` observes `WorkItemLifecycleEvent` — for EXPIRED, it signals
+the case directly since `WorkItemLifecycleAdapter.markFaulted()` does not fire outputMapping.
+
+**AE severity routing** (`ae-escalation.yaml`): Grade 3+ AE opens a
+`safety-review` humanTask (senior-safety-monitors). Grade 4+ additionally opens
+a `dsmb-escalation` humanTask in parallel. Same YAML — initial context determines
+which bindings fire.
+
+`AdverseEventEscalationPolicy` SPI replaces hardcoded routing entirely.
+Grade 1/2 AEs use the Layer 2 direct WorkItem path unchanged.
+Grade 3+ AEs: `ae.workItemId` is null (engine creates WorkItems via humanTask bindings).
+
+### Compliance gap closed
+
+Fixed pipeline: agents and humans handled events in a fixed imperative sequence.
+Adaptive paths: engine evaluates binding conditions against accumulated context,
+opens only the gates warranted by the specific event's severity and policy.
+Closes the "no adaptive paths" gap in the ClinicalAgent comparison table.
+
+### Key wiring
+
+- `ClinicalDeviationCaseHub` / `deviation-review.yaml` — IRB case definition
+- `IrbDeviationCaseService` — creates IrbApproval(PENDING) + starts case on `ProtocolDeviationResolvedEvent(IRB_REVIEW)`
+- `IrbDecisionListener` — updates IrbApproval.decision; EXPIRED signals case manually
+- `IrbApprovalLedgerEntry` / `IrbApprovalLedgerWriter` — V1009, FDA tamper-evident IRB record
+- `IrbApprovalResolvedEvent` — Layer 6 hook (trial-level aggregation)
+- `ClinicalAdverseEventCaseHub` / `ae-escalation.yaml` — AE case definition
+- `AeEscalationCaseService` — observes `AdverseEventReportedEvent`, starts case
+- `AeEscalationListener` — observes `CaseLifecycleEvent("CaseCompleted")`, discriminates by `CaseContext.aeId`
+- `AeEscalationLedgerEntry` / `AeEscalationLedgerWriter` — V1010
+- `AeEscalationCompletedEvent`, `IrbApprovalResolvedEvent` — CDI events for Layer 6 consumers
+- `AdverseEventEscalationPolicy` SPI + `DefaultAdverseEventEscalationPolicy`
+- V109: `irb_approval.deviation_id` FK
+
+### Gotchas
+
+- **engine#312** (PENDING guard): `HumanTaskScheduleHandler` skips WorkItem creation
+  if `PlanningStrategyLoopControl` has already marked the PlanItem RUNNING.
+  Tests: `await().atMost(5s)`. Filed casehubio/engine#312.
+- **engine#315** (@ObservesAsync external jar): CDI async delivery to
+  `WorkItemLifecycleAdapter` unreliable in tests. Invoke adapter directly.
+  Filed casehubio/engine#315.
+- **GE-0167** (`inputMapping` not `inputSchema`): YAML binding field is
+  `inputMapping`, not `inputSchema`. Uses mini-DSL, not JQ.
+- **engine#314** (no nested `{..}` in outputMapping): Use flat pattern
+  `"{ key: . }"` — mapping the full resolution, not extracting sub-fields.
+- **Quartz / casehub-work cron incompatibility**: casehub-engine-scheduler-quartz
+  brings `quarkus-quartz` which requires 6-7 field cron. casehub-work's scheduler
+  beans (`ExpiryCleanupJob`, `ClaimDeadlineJob`, `RoutingCursorCleanupJob`) use
+  5-field Unix cron. Exclude those beans in test properties; add
+  `quarkus.scheduler.start-mode=forced` and `quarkus.quartz.store-type=ram`.
+- **Missing platform deps**: casehub-engine requires `casehub-platform` (@DefaultBean
+  mocks) and `casehub-platform-expression` (JQEvaluator). Without them, engine CDI
+  beans fail to start. Add both to pom.xml alongside the engine deps.
+- **IrbDecisionListener EXPIRED path**: `WorkItemLifecycleEvent.of("EXPIRED", wi, "system", null)`
+  uses `workItem.status` for `event.status()`. Must set `wi.status = WorkItemStatus.EXPIRED`
+  before constructing, or call `IrbDecisionListener.onWorkItemLifecycle()` directly in tests.
+- **Grade 3+ AEs**: `ae.workItemId` is null. Engine creates WorkItems.
+  Existing tests asserting `workItemId != null` for Grade 3+ were updated.
+
+### Pattern to replicate
+
+`YamlCaseHub` subclass (ApplicationScoped) → CDI event observer starts case with
+initial context (policy sets routing keys) → YAML binding conditions use context keys
+→ `WorkItemLifecycleAdapter` fires CONTEXT_CHANGED on terminal WorkItem states →
+domain listener observes `WorkItemLifecycleEvent` (IRB) or `CaseLifecycleEvent` (AE),
+updates domain + fires resolved CDI event → tests invoke adapter directly (engine#315).

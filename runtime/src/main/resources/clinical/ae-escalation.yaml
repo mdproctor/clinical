@@ -21,8 +21,9 @@ spec:
 
   bindings:
     - name: safety-review
-      on: { contextChange: {} }
-      when: ".requiresSeniorMonitor == true and .safetyReview == null"
+      on:
+        contextChange:
+          filter: ".requiresSeniorMonitor == true and .safetyReview == null"
       humanTask:
         title: "Senior safety monitor review — adverse event"
         expiresIn: PT24H
@@ -31,8 +32,9 @@ spec:
         outputMapping: "{ safetyReview: . }"
 
     - name: dsmb-escalation
-      on: { contextChange: {} }
-      when: ".requiresDsmbEscalation == true and .dsmbEscalation == null"
+      on:
+        contextChange:
+          filter: ".requiresDsmbEscalation == true and .dsmbEscalation == null"
       humanTask:
         title: "DSMB escalation — Grade 4+ adverse event"
         expiresIn: PT24H

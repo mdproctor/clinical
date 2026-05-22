@@ -168,8 +168,8 @@ This is an application, not a framework. If the capability requires knowledge of
 | `../parent/docs/repos/casehub-clinical.md` | Harness structure, tutorial layers table, layer status |
 | `../parent/docs/use-case-analysis.md` | Use case scoring, clinical trial selection rationale (§8.1), GCP compliance gap analysis |
 | `../parent/docs/tutorial-strategy.md` | Clinical tutorial layers §7 — teaching objectives and code sketches per layer |
-| `../parent/docs/protocols/casehub/HARNESS-INDEX.md` | CaseHub app protocols |
-| `../parent/docs/protocols/universal/INDEX.md` | Universal Java/Quarkus protocols |
+| `../garden/docs/protocols/casehub/HARNESS-INDEX.md` | CaseHub app protocols |
+| `../garden/docs/protocols/universal/INDEX.md` | Universal Java/Quarkus protocols |
 
 ## External Reference Standards
 

@@ -1,0 +1,27 @@
+dsl: "0.1"
+version: "1.0.0"
+name: deviation-review
+namespace: clinical
+title: Protocol Deviation Review — IRB consultation gate
+
+spec:
+
+  goals:
+    - name: irb-decided
+      kind: success
+      condition: ".irbConsultation != null"
+
+  completion:
+    success:
+      allOf: [irb-decided]
+
+  bindings:
+    - name: irb-consultation
+      on: { contextChange: {} }
+      when: ".irbConsultationRequired == true and .irbConsultation == null"
+      humanTask:
+        title: "IRB consultation required — protocol deviation"
+        expiresIn: PT72H
+        candidateGroups: [irb-committee]
+        inputSchema: "{ deviationId: .deviationId, severity: .severity }"
+        outputMapping: "{ irbConsultation: . }"

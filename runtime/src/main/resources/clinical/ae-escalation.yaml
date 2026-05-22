@@ -1,0 +1,41 @@
+dsl: "0.1"
+version: "1.0.0"
+name: ae-escalation
+namespace: clinical
+title: Adverse Event Safety Escalation — adaptive severity routing
+
+spec:
+
+  goals:
+    - name: safety-review-complete
+      kind: success
+      condition: ".safetyReview != null"
+
+    - name: dsmb-complete
+      kind: success
+      condition: ".requiresDsmbEscalation == false or .dsmbEscalation != null"
+
+  completion:
+    success:
+      allOf: [safety-review-complete, dsmb-complete]
+
+  bindings:
+    - name: safety-review
+      on: { contextChange: {} }
+      when: ".requiresSeniorMonitor == true and .safetyReview == null"
+      humanTask:
+        title: "Senior safety monitor review — adverse event"
+        expiresIn: PT24H
+        candidateGroups: [senior-safety-monitors]
+        inputSchema: "{ aeId: .aeId, grade: .grade, enrollmentId: .enrollmentId }"
+        outputMapping: "{ safetyReview: . }"
+
+    - name: dsmb-escalation
+      on: { contextChange: {} }
+      when: ".requiresDsmbEscalation == true and .dsmbEscalation == null"
+      humanTask:
+        title: "DSMB escalation — Grade 4+ adverse event"
+        expiresIn: PT24H
+        candidateGroups: [dsmb]
+        inputSchema: "{ aeId: .aeId, grade: .grade, enrollmentId: .enrollmentId }"
+        outputMapping: "{ dsmbEscalation: . }"

@@ -316,7 +316,7 @@ Layer 1: naive Java — FHIR R5 domain model, six entities, REST CRUD, no accoun
 Layer 2: + casehub-work — adverse event SLA (GCP ICH E6(R3) §5.17; Grade 3/4 = 24h) ✅ (Epic 4)
 Layer 3: + casehub-qhorus — PI authorisation COMMAND for protocol deviations ✅ (Epic 5)
 Layer 4: + casehub-ledger — FDA Merkle tamper-evident audit trail ✅ (Epic 4)
-Layer 5: + casehub-engine — IRB gate as engine PlanItem; CRITICAL deviation path (clinical#6)
+Layer 5: + casehub-engine — IRB gate as engine PlanItem; CRITICAL deviation path ✅ (Epic 6)
 Layer 6: multi-site sub-case orchestration — DSMB rollup; blocked on engine#112
 Layer 7: trust routing + comparison vs ClinicalAgent (arXiv 2404.14777)
 ```
@@ -392,6 +392,29 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 **Ledger SNAPSHOT reactive services:** Fixed in ledger#92 — `LedgerVerificationService` and related services now use `Instance<ReactiveLedgerEntryRepository>` with `isResolvable()` guard. JDBC-only consumers start cleanly without `quarkus.arc.exclude-types`. No workaround needed.
 
 **Connector CDI exclusions:** `TwilioSmsConnector` and `WhatsAppConnector` (from `casehub-connectors-core`) require external credentials (`casehub.connectors.twilio.*`, `casehub.connectors.whatsapp.*`) not present in the test environment. They are excluded via `quarkus.arc.exclude-types` in test `application.properties`. `SlackConnector` is replaced by `TestSlackConnector` via `@Mock`. When adding new connectors with required external config, add them to the exclude-types list.
+
+**Engine CDI wiring (Layer 5+):** When adding `casehub-engine` to the classpath, also add `casehub-platform` and `casehub-platform-expression` — without them, engine beans (`JQEvaluator`, event handlers) cannot resolve their injection points and CDI startup fails.
+
+```xml
+<dependency><groupId>io.casehub</groupId><artifactId>casehub-platform</artifactId></dependency>
+<dependency><groupId>io.casehub</groupId><artifactId>casehub-platform-expression</artifactId></dependency>
+<dependency><groupId>io.casehub</groupId><artifactId>casehub-platform-testing</artifactId><scope>test</scope></dependency>
+```
+
+In production `application.properties`, add JPA store alternatives alongside `JpaLedgerEntryRepository`:
+```properties
+quarkus.arc.selected-alternatives=\
+  io.casehub.ledger.runtime.repository.jpa.JpaLedgerEntryRepository,\
+  io.casehub.persistence.jpa.JpaPlanItemStore,\
+  io.casehub.persistence.jpa.JpaSubCaseGroupRepository
+```
+
+In test `application.properties`:
+- Use memory stores: `quarkus.arc.selected-alternatives` must include `MemoryPlanItemStore,MemorySubCaseGroupRepository`
+- Index engine jars: `quarkus.index-dependency.engine-runtime.artifact-id=casehub-engine` (and work-adapter, blackboard, testing, persistence-memory, engine-common)
+- **Quartz cron incompatibility:** `casehub-engine-scheduler-quartz` brings `quarkus-quartz` which requires 6-7 field cron. `casehub-work` scheduler beans (`ExpiryCleanupJob`, `ClaimDeadlineJob`, `RoutingCursorCleanupJob`) use 5-field Unix cron — they fail at startup with Quartz. Exclude them via `quarkus.arc.exclude-types`. Also set `quarkus.quartz.store-type=ram` and `quarkus.scheduler.start-mode=forced`.
+- **YAML binding conditions:** Use `on.contextChange.filter` not `when` — the `when` field is silently ignored for `contextChange` triggers (engine#335).
+- **inputMapping not inputSchema:** YAML humanTask bindings use `inputMapping` field (mini-DSL, not JQ) — the field sets the WorkItem payload. `outputMapping` uses JQ flat pattern `"{ key: . }"` (engine#314: nested `{..}` unsupported).
 
 ## Build Commands
 

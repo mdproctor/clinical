@@ -36,6 +36,12 @@ public class ClinicalTrial extends PanacheEntityBase {
     @Column(name = "sponsor_notification_destination")
     public String sponsorNotificationDestination;
 
+    @Column(name = "safety_officer_connector_id")
+    public String safetyOfficerConnectorId;
+
+    @Column(name = "safety_officer_destination", length = 2048)
+    public String safetyOfficerDestination;
+
     /** Engine case ID — set when trial transitions to ACTIVE; null until then. */
     @Column(name = "engine_case_id")
     public UUID engineCaseId;

@@ -6,31 +6,37 @@ import io.casehub.clinical.api.model.PiApprovalStatus;
 import io.casehub.clinical.entity.ProtocolDeviation;
 import io.casehub.connectors.Connector;
 import io.casehub.connectors.ConnectorMessage;
+import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Any;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @DefaultBean
 public class DefaultSponsorNotifier implements SponsorNotifier {
 
-    @Inject @Any Instance<Connector> connectors;
+    private final Map<String, Connector> connectorRegistry;
     @Inject DeviationLedgerWriter ledgerWriter;
     @Inject Clock clock;
 
+    @Inject
+    DefaultSponsorNotifier(@All final List<Connector> connectors) {
+        this.connectorRegistry = connectors.stream()
+            .collect(Collectors.toMap(Connector::id, Function.identity()));
+    }
+
     @Override
     public void notify(SponsorNotificationRequest req) {
-        Connector connector = connectors.stream()
-            .filter(c -> c.id().equals(req.sponsorNotificationConnectorId()))
-            .findFirst()
-            .orElse(null);
+        Connector connector = connectorRegistry.get(req.sponsorNotificationConnectorId());
 
         if (connector == null) {
             Log.errorf("No connector '%s' found — sponsor notification not delivered for deviation %s",

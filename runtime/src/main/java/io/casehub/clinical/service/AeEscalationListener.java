@@ -41,8 +41,6 @@ public class AeEscalationListener {
     @Transactional
     public void onCaseLifecycle(@ObservesAsync CaseLifecycleEvent event) {
         LOG.debugf("AeEscalationListener: received eventType=%s caseStatus=%s caseId=%s", event.eventType(), event.caseStatus(), event.caseId());
-        // React to GoalReached (which the engine fires when all goals are met, before status updates).
-        // CaseCompleted is also fired by CaseStatusChangedHandler but may not reliably arrive in all environments.
         if (!"GoalReached".equals(event.eventType()) && !"CaseCompleted".equals(event.eventType())) return;
 
         var instance = caseInstanceRepository
@@ -61,33 +59,44 @@ public class AeEscalationListener {
             return;
         }
 
-        // Write COMPLETED before enrollmentId check — status reflects case completion
-        // regardless of whether context is complete enough for ledger write.
-        // REQUIRES_NEW in AeStatusUpdater ensures this commits even if the outer transaction rolls back.
+        // REQUIRES_NEW: commits independently of the outer transaction.
         // Returns false if already COMPLETED — GoalReached fires multiple times per case (idempotency guard).
         boolean firstCompletion = statusUpdater.markCompleted(aeId);
-        if (!firstCompletion) {
-            return; // already handled by a prior GoalReached event for this case
-        }
+        if (!firstCompletion) return;
 
+        // Context resolution outside try block — if these throw, no REQUIRES_NEW has committed,
+        // so there is no FDA gap. Exceptions propagate to the @ObservesAsync dispatcher, which logs them.
         UUID enrollmentId = resolveUuid(instance.getCaseContext().getPath("enrollmentId"));
         if (enrollmentId == null) {
             LOG.warnf("AeEscalationListener: enrollmentId missing from case context for aeId=%s — ledger write skipped", aeId);
             return;
         }
-
         UUID siteId = resolveUuid(instance.getCaseContext().getPath("siteId"));
         CtcaeGrade grade = resolveGrade(instance.getCaseContext().getPath("grade"));
-        // safetyReview is the full WorkItem resolution mapped by outputMapping: "{ safetyReview: . }"
-        // The resolution body must include an "outcome" field — e.g. {"outcome":"REVIEWED","reviewedAt":"..."}
         String safetyReviewOutcome = resolveOutcome(instance.getCaseContext().getPath("safetyReview"));
         boolean dsmbEscalated = instance.getCaseContext().getPath("dsmbEscalation") != null;
         Instant completedAt = Instant.now();
 
-        ledgerWriter.writeCompletionEntry(aeId, enrollmentId, grade, safetyReviewOutcome, dsmbEscalated, completedAt);
-
-        completedEvents.fireAsync(new AeEscalationCompletedEvent(
-                aeId, grade, siteId, safetyReviewOutcome, dsmbEscalated, completedAt));
+        // Narrow try/catch: markCompleted committed (REQUIRES_NEW). Any exception here is an FDA gap.
+        // ledgerWritten guards against a spurious failure entry when only fireAsync throws after success.
+        boolean ledgerWritten = false;
+        try {
+            ledgerWriter.writeCompletionEntry(aeId, enrollmentId, grade, safetyReviewOutcome, dsmbEscalated, completedAt);
+            ledgerWritten = true;
+            completedEvents.fireAsync(new AeEscalationCompletedEvent(
+                    aeId, grade, siteId, safetyReviewOutcome, dsmbEscalated, completedAt));
+        } catch (Exception e) {
+            if (!ledgerWritten) {
+                LOG.errorf(e, "AeEscalationListener: unexpected error for aeId=%s (enrollmentId=%s, grade=%s) — writing failure entry", aeId, enrollmentId, grade);
+                try {
+                    ledgerWriter.writeObserverFailureEntry(aeId, enrollmentId, grade);
+                } catch (Exception writeEx) {
+                    LOG.errorf(writeEx, "AUDIT GAP: could not write observer failure entry for aeId=%s", aeId);
+                }
+            } else {
+                LOG.errorf(e, "AeEscalationListener: downstream fireAsync failed for aeId=%s — ledger entry exists, no fallback needed", aeId);
+            }
+        }
     }
 
     private UUID resolveUuid(Object obj) {

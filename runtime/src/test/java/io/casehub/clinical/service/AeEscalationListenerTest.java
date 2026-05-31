@@ -20,8 +20,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class AeEscalationListenerTest {
@@ -93,5 +98,73 @@ class AeEscalationListenerTest {
 
         verifyNoInteractions(ledgerWriter);
         verifyNoInteractions(completedEvents);
+    }
+
+    // --- helper methods ---
+
+    private CaseLifecycleEvent goalReachedEvent(UUID caseId) {
+        return new CaseLifecycleEvent(
+                caseId, "CompleteCase", "GoalReached", "RUNNING", "system", "system", null);
+    }
+
+    private void mockInstanceWith(UUID caseId, UUID aeId, UUID enrollmentId, String grade) {
+        CaseContext ctx = mock(CaseContext.class);
+        when(ctx.getPath("aeId")).thenReturn(aeId.toString());
+        when(ctx.getPath("enrollmentId")).thenReturn(enrollmentId.toString());
+        when(ctx.getPath("grade")).thenReturn(grade);
+        when(ctx.getPath("siteId")).thenReturn(null);
+        when(ctx.getPath("safetyReview")).thenReturn(null);
+        when(ctx.getPath("dsmbEscalation")).thenReturn(null);
+        CaseInstance instance = mock(CaseInstance.class);
+        when(instance.getCaseContext()).thenReturn(ctx);
+        when(caseInstanceRepository.findByUuid(caseId)).thenReturn(Uni.createFrom().item(instance));
+    }
+
+    @Test
+    void writeCompletionEntry_throws_writes_observer_failure_entry() {
+        UUID caseId = UUID.randomUUID();
+        UUID aeId = UUID.randomUUID();
+        UUID enrollmentId = UUID.randomUUID();
+        mockInstanceWith(caseId, aeId, enrollmentId, "GRADE_3");
+        when(statusUpdater.markCompleted(aeId)).thenReturn(true);
+        doThrow(new RuntimeException("ledger write failed"))
+            .when(ledgerWriter).writeCompletionEntry(any(), any(), any(), any(), anyBoolean(), any());
+
+        assertThatCode(() -> listener.onCaseLifecycle(goalReachedEvent(caseId)))
+            .doesNotThrowAnyException();
+
+        verify(ledgerWriter).writeObserverFailureEntry(eq(aeId), eq(enrollmentId), eq(CtcaeGrade.GRADE_3));
+    }
+
+    @Test
+    void writeCompletionEntry_and_fallback_both_throw_does_not_propagate() {
+        UUID caseId = UUID.randomUUID();
+        UUID aeId = UUID.randomUUID();
+        UUID enrollmentId = UUID.randomUUID();
+        mockInstanceWith(caseId, aeId, enrollmentId, "GRADE_4");
+        when(statusUpdater.markCompleted(aeId)).thenReturn(true);
+        doThrow(new RuntimeException("ledger write failed"))
+            .when(ledgerWriter).writeCompletionEntry(any(), any(), any(), any(), anyBoolean(), any());
+        doThrow(new RuntimeException("fallback write failed"))
+            .when(ledgerWriter).writeObserverFailureEntry(any(), any(), any());
+
+        assertThatCode(() -> listener.onCaseLifecycle(goalReachedEvent(caseId)))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void fireAsync_throws_after_ledger_written_no_failure_entry() {
+        UUID caseId = UUID.randomUUID();
+        UUID aeId = UUID.randomUUID();
+        UUID enrollmentId = UUID.randomUUID();
+        mockInstanceWith(caseId, aeId, enrollmentId, "GRADE_3");
+        when(statusUpdater.markCompleted(aeId)).thenReturn(true);
+        doThrow(new RuntimeException("fireAsync failed"))
+            .when(completedEvents).fireAsync(any());
+
+        assertThatCode(() -> listener.onCaseLifecycle(goalReachedEvent(caseId)))
+            .doesNotThrowAnyException();
+
+        verify(ledgerWriter, never()).writeObserverFailureEntry(any(), any(), any());
     }
 }

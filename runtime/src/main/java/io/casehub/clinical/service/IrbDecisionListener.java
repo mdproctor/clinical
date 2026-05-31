@@ -64,23 +64,41 @@ public class IrbDecisionListener {
             return;
         }
 
-        approval.decision = decision;
-        approval.persist();
+        // ledgerDecisionWritten guards against a spurious failure entry when only
+        // fireAsync throws after writeDecisionEntry succeeds. Without it: exception caught
+        // → outer TX commits → success ledger entry + REQUIRES_NEW failure entry both committed.
+        boolean ledgerDecisionWritten = false;
+        try {
+            approval.decision = decision;
+            approval.persist();
 
-        if (event.status() == WorkItemStatus.EXPIRED) {
-            CallerRef ref = CallerRef.parse(workItem.callerRef);
-            if (ref != null) {
-                caseHub.signal(ref.caseId(), "irbConsultation", Map.of(
-                        "decision", "EXPIRED",
-                        "committeeId", approval.committeeId,
-                        "decidedAt", Instant.now().toString()));
+            if (event.status() == WorkItemStatus.EXPIRED) {
+                CallerRef ref = CallerRef.parse(workItem.callerRef);
+                if (ref != null) {
+                    caseHub.signal(ref.caseId(), "irbConsultation", Map.of(
+                            "decision", "EXPIRED",
+                            "committeeId", approval.committeeId,
+                            "decidedAt", Instant.now().toString()));
+                }
+            }
+
+            ledgerWriter.writeDecisionEntry(approval);
+            ledgerDecisionWritten = true;
+
+            resolvedEvents.fireAsync(new IrbApprovalResolvedEvent(
+                    approval.id, deviationId, approval.siteId, decision, Instant.now()));
+        } catch (Exception e) {
+            if (!ledgerDecisionWritten) {
+                LOG.errorf(e, "IrbDecisionListener: unexpected error for deviationId=%s approvalId=%s — writing failure entry", deviationId, approval.id);
+                try {
+                    ledgerWriter.writeObserverFailureEntry(approval);
+                } catch (Exception writeEx) {
+                    LOG.errorf(writeEx, "AUDIT GAP: could not write observer failure entry for deviationId=%s", deviationId);
+                }
+            } else {
+                LOG.errorf(e, "IrbDecisionListener: downstream fireAsync failed for deviationId=%s — ledger entry exists, no fallback needed", deviationId);
             }
         }
-
-        ledgerWriter.writeDecisionEntry(approval);
-
-        resolvedEvents.fireAsync(new IrbApprovalResolvedEvent(
-                approval.id, deviationId, approval.siteId, decision, Instant.now()));
     }
 
     private UUID extractDeviationId(WorkItem workItem) {

@@ -49,10 +49,12 @@ public class AeEscalationLedgerWriter {
      * Called from AeEscalationListener observer fallback path.
      * Commits in its own REQUIRES_NEW transaction so it persists even if the
      * outer transaction is in rollback-only state.
-     * grade may be null if the exception occurred before grade was resolved from case context.
+     * grade may be null if the case context contained no valid grade value
+     * (grade is resolved outside the try block, before this method is called).
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void writeObserverFailureEntry(UUID aeId, UUID enrollmentId, CtcaeGrade grade) {
+        Instant now = clock.instant();
         var entry = new AeEscalationLedgerEntry();
         entry.id = UUID.randomUUID();
         entry.subjectId = aeId;
@@ -61,12 +63,12 @@ public class AeEscalationLedgerWriter {
         entry.actorId = ClinicalActors.CLINICAL_SERVICE;
         entry.actorType = ActorType.SYSTEM;
         entry.actorRole = "AeEscalationCase-observer-failed";
-        entry.occurredAt = clock.instant();
+        entry.occurredAt = now;
         entry.aeId = aeId;
         entry.enrollmentId = enrollmentId;
         entry.ctcaeGrade = grade != null ? grade.name() : null;
         entry.dsmbEscalated = false;
-        entry.completedAt = clock.instant();
+        entry.completedAt = now;
         ledgerEntryRepository.save(entry);
     }
 

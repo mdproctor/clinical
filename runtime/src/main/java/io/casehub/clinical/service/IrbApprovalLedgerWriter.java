@@ -50,7 +50,12 @@ public class IrbApprovalLedgerWriter {
      * outer transaction is in rollback-only state.
      * Uses ClinicalActors.CLINICAL_SERVICE — this records a system-level failure,
      * not the IRB committee's decision (which writeDecisionEntry records).
-     * approval.decision is always non-null at call time (set as first statement in try block).
+     * approval.decision is always non-null at call time (set as first statement in try block,
+     * which is a field assignment that cannot throw). If persist() or a downstream call
+     * threw, approval.decision holds the intended decision in memory but may not be committed
+     * to the DB (the outer TX rolls back). This failure entry records the intended decision
+     * so the audit trail captures what was attempted; the discrepancy between this entry
+     * and the domain table's PENDING state is intentional and indicates a processing failure.
      * committeeId defensive null-guard handles corrupt data only.
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)

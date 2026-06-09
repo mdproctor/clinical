@@ -37,6 +37,7 @@ public class AeEscalationListener {
     @Inject AeEscalationLedgerWriter ledgerWriter;
     @Inject AeStatusUpdater statusUpdater;
     @Inject Event<AeEscalationCompletedEvent> completedEvents;
+    @Inject io.casehub.clinical.memory.ClinicalMemoryService memoryService;
 
     @Transactional
     public void onCaseLifecycle(@ObservesAsync CaseLifecycleEvent event) {
@@ -83,6 +84,10 @@ public class AeEscalationListener {
         try {
             ledgerWriter.writeCompletionEntry(aeId, enrollmentId, grade, safetyReviewOutcome, dsmbEscalated, completedAt);
             ledgerWritten = true;
+            String tenantId = resolveString(instance.getCaseContext().getPath("tenantId"));
+            if (tenantId != null) {
+                memoryService.storeAeOutcome(aeId, enrollmentId, grade, safetyReviewOutcome, dsmbEscalated, tenantId);
+            }
             completedEvents.fireAsync(new AeEscalationCompletedEvent(
                     aeId, grade, siteId, safetyReviewOutcome, dsmbEscalated, completedAt));
         } catch (Exception e) {
@@ -97,6 +102,10 @@ public class AeEscalationListener {
                 LOG.errorf(e, "AeEscalationListener: downstream fireAsync failed for aeId=%s — ledger entry exists, no fallback needed", aeId);
             }
         }
+    }
+
+    private String resolveString(Object obj) {
+        return obj != null ? obj.toString() : null;
     }
 
     private UUID resolveUuid(Object obj) {

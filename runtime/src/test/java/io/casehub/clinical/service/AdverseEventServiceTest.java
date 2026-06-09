@@ -102,7 +102,7 @@ class AdverseEventServiceTest {
         AdverseEvent ae = newAe(CtcaeGrade.GRADE_4);
         service.reportAdverseEvent(ae);
 
-        var entries = ledgerRepo.findBySubjectId(ae.id).stream()
+        var entries = ledgerRepo.findBySubjectId(ae.id, "default").stream()
             .filter(e -> e instanceof AdverseEventLedgerEntry)
             .toList();
         assertThat(entries).hasSize(1);

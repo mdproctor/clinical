@@ -69,7 +69,7 @@ class SafetyOfficerNotificationListenerTest {
         final UUID aeId = UUID.randomUUID();
         final UUID enrollmentId = UUID.randomUUID();
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3, Instant.now());
+            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
@@ -88,7 +88,7 @@ class SafetyOfficerNotificationListenerTest {
     @Test
     void grade5_event_calls_spi_with_grade5_in_request() {
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            UUID.randomUUID(), UUID.randomUUID(), siteId, CtcaeGrade.GRADE_5, Instant.now());
+            UUID.randomUUID(), UUID.randomUUID(), siteId, CtcaeGrade.GRADE_5, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
@@ -101,7 +101,7 @@ class SafetyOfficerNotificationListenerTest {
     @Test
     void null_siteId_does_not_call_spi() {
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            UUID.randomUUID(), UUID.randomUUID(), null, CtcaeGrade.GRADE_4, Instant.now());
+            UUID.randomUUID(), UUID.randomUUID(), null, CtcaeGrade.GRADE_4, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
@@ -113,7 +113,7 @@ class SafetyOfficerNotificationListenerTest {
     void unknown_site_does_not_call_spi() {
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
             UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-            CtcaeGrade.GRADE_3, Instant.now());
+            CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
@@ -145,7 +145,7 @@ class SafetyOfficerNotificationListenerTest {
 
         listener.onAeReported(new AdverseEventReportedEvent(
             UUID.randomUUID(), UUID.randomUUID(), newSiteId,
-            CtcaeGrade.GRADE_3, Instant.now()));
+            CtcaeGrade.GRADE_3, Instant.now(), "test-tenant"));
 
         verifyNoInteractions(safetyOfficerNotifier);
     }
@@ -194,7 +194,7 @@ class SafetyOfficerNotificationListenerTest {
     private AdverseEventReportedEvent aeEvent(final UUID siteId) {
         return new AdverseEventReportedEvent(
             UUID.randomUUID(), UUID.randomUUID(), siteId,
-            CtcaeGrade.GRADE_3, Instant.now());
+            CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
     }
 
     @Test
@@ -202,13 +202,13 @@ class SafetyOfficerNotificationListenerTest {
     void null_siteId_writes_skipped_ledger_entry() {
         final UUID aeId = UUID.randomUUID();
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, UUID.randomUUID(), null, CtcaeGrade.GRADE_4, Instant.now());
+            aeId, UUID.randomUUID(), null, CtcaeGrade.GRADE_4, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
         final SafetyOfficerNotificationLedgerEntry entry =
             (SafetyOfficerNotificationLedgerEntry)
-            ledgerEntryRepository.findLatestBySubjectId(aeId).orElse(null);
+            ledgerEntryRepository.findLatestBySubjectId(aeId, "default").orElse(null);
         assertThat(entry).isNotNull();
         assertThat(entry.actorRole).isEqualTo("safety-officer-notifier-skipped-no-site-id");
         assertThat(entry.delivered).isFalse();
@@ -221,13 +221,13 @@ class SafetyOfficerNotificationListenerTest {
         final UUID aeId = UUID.randomUUID();
         final UUID unknownSiteId = UUID.randomUUID();
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, UUID.randomUUID(), unknownSiteId, CtcaeGrade.GRADE_3, Instant.now());
+            aeId, UUID.randomUUID(), unknownSiteId, CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
         final SafetyOfficerNotificationLedgerEntry entry =
             (SafetyOfficerNotificationLedgerEntry)
-            ledgerEntryRepository.findLatestBySubjectId(aeId).orElse(null);
+            ledgerEntryRepository.findLatestBySubjectId(aeId, "default").orElse(null);
         assertThat(entry).isNotNull();
         assertThat(entry.actorRole).isEqualTo("safety-officer-notifier-skipped-site-not-found");
         assertThat(entry.siteId).isEqualTo(unknownSiteId);
@@ -239,13 +239,13 @@ class SafetyOfficerNotificationListenerTest {
         final UUID aeId = UUID.randomUUID();
         final TrialSite site = siteWithConfig(null, null);
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, UUID.randomUUID(), site.id, CtcaeGrade.GRADE_3, Instant.now());
+            aeId, UUID.randomUUID(), site.id, CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
         final SafetyOfficerNotificationLedgerEntry entry =
             (SafetyOfficerNotificationLedgerEntry)
-            ledgerEntryRepository.findLatestBySubjectId(aeId).orElse(null);
+            ledgerEntryRepository.findLatestBySubjectId(aeId, "default").orElse(null);
         assertThat(entry).isNotNull();
         assertThat(entry.actorRole).isEqualTo("safety-officer-notifier-skipped-no-config");
         assertThat(entry.delivered).isFalse();
@@ -257,7 +257,7 @@ class SafetyOfficerNotificationListenerTest {
         final UUID aeId = UUID.randomUUID();
         final UUID enrollmentId = UUID.randomUUID();
         final AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3, Instant.now());
+            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
 
         doThrow(new RuntimeException("injected test failure"))
             .when(safetyOfficerNotifier).notify(any());
@@ -267,7 +267,7 @@ class SafetyOfficerNotificationListenerTest {
 
         SafetyOfficerNotificationLedgerEntry entry =
             (SafetyOfficerNotificationLedgerEntry)
-            ledgerEntryRepository.findLatestBySubjectId(aeId).orElse(null);
+            ledgerEntryRepository.findLatestBySubjectId(aeId, "default").orElse(null);
         assertThat(entry).isNotNull();
         assertThat(entry.delivered).isFalse();
         assertThat(entry.connectorId).isNull();

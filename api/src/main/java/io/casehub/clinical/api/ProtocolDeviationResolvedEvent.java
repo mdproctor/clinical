@@ -19,5 +19,6 @@ public record ProtocolDeviationResolvedEvent(
     EscalationRequirement escalationRequirement,
     PiApprovalStatus terminalStatus,
     String deviationType,
-    String piId
+    String piId,
+    String tenantId
 ) {}

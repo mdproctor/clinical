@@ -4,6 +4,7 @@ import io.casehub.clinical.api.model.TrialStatus;
 import io.casehub.clinical.api.model.TrialPhase;
 import io.casehub.clinical.entity.ClinicalTrial;
 import io.casehub.clinical.service.TrialActivationService;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class TrialResource {
 
     @Inject TrialActivationService trialActivationService;
+    @Inject CurrentPrincipal principal;
 
     public record SponsorConfigRequest(
         @Size(max = 64) String connectorId,
@@ -49,6 +51,7 @@ public class TrialResource {
         trial.status = TrialStatus.PLANNING;
         trial.sponsorNotificationConnectorId = req.sponsorNotificationConnectorId();
         trial.sponsorNotificationDestination = req.sponsorNotificationDestination();
+        trial.tenantId = principal.tenancyId();
         trial.persist();
 
         URI location = uriInfo.getAbsolutePathBuilder().path(trial.id.toString()).build();

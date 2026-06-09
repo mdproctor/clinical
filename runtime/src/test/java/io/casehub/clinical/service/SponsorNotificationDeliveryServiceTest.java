@@ -270,7 +270,7 @@ class SponsorNotificationDeliveryServiceTest {
         store.createPending(new io.casehub.clinical.api.SponsorNotificationRequest(
                 UUID.randomUUID(), UUID.randomUUID(), deviationId,
                 "CONSENT_DEVIATION", DeviationSeverity.MAJOR, PiApprovalStatus.ESCALATED,
-                "dr-smith@v1", "Dr. Smith", connectorId, "https://hooks.slack.com/test"));
+                "dr-smith@v1", "Dr. Smith", connectorId, "https://hooks.slack.com/test", "test-tenant"));
         return findByDeviationId(deviationId);
     }
 

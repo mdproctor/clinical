@@ -5,6 +5,7 @@ import io.casehub.clinical.api.AeEscalationCompletedEvent;
 import io.casehub.clinical.api.model.CtcaeGrade;
 import io.casehub.engine.common.spi.event.CaseLifecycleEvent;
 import io.casehub.engine.common.internal.model.CaseInstance;
+import io.casehub.clinical.memory.ClinicalMemoryService;
 import io.casehub.engine.common.spi.CaseInstanceRepository;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.event.Event;
@@ -33,6 +34,7 @@ class AeEscalationListenerTest {
     @Mock AeEscalationLedgerWriter ledgerWriter;
     @Mock AeStatusUpdater statusUpdater;
     @Mock Event<AeEscalationCompletedEvent> completedEvents;
+    @Mock ClinicalMemoryService memoryService;
     @InjectMocks AeEscalationListener listener;
 
     @Test
@@ -49,6 +51,7 @@ class AeEscalationListenerTest {
         when(ctx.getPath("siteId")).thenReturn(siteId.toString());
         when(ctx.getPath("safetyReview")).thenReturn(Map.of(AeEscalationListener.OUTCOME_KEY, "REVIEWED"));
         when(ctx.getPath("dsmbEscalation")).thenReturn("completed");
+        when(ctx.getPath("tenantId")).thenReturn("test-tenant");
 
         CaseInstance instance = mock(CaseInstance.class);
         when(instance.getCaseContext()).thenReturn(ctx);

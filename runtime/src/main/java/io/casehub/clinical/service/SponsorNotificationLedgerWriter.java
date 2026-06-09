@@ -48,7 +48,7 @@ public class SponsorNotificationLedgerWriter {
         entry.actorRole = "sponsor-notifier";
         entry.delivered = true;
         entry.occurredAt = deliveredAt;
-        repo.save(entry);
+        repo.save(entry, "default");
     }
 
     /** Records a failed delivery attempt where retries remain. */
@@ -60,7 +60,7 @@ public class SponsorNotificationLedgerWriter {
         entry.delivered = false;
         entry.failureReason = reason;
         entry.occurredAt = clock.instant();
-        repo.save(entry);
+        repo.save(entry, "default");
     }
 
     /** Records terminal exhaustion — all attempts consumed, sponsor unreached. */
@@ -72,7 +72,7 @@ public class SponsorNotificationLedgerWriter {
         entry.delivered = false;
         entry.failureReason = reason;
         entry.occurredAt = clock.instant();
-        repo.save(entry);
+        repo.save(entry, "default");
     }
 
     private SponsorNotificationLedgerEntry base(final SponsorNotification n,
@@ -91,7 +91,7 @@ public class SponsorNotificationLedgerWriter {
     }
 
     private int nextSequenceNumber(final UUID notificationId) {
-        return repo.findLatestBySubjectId(notificationId)
+        return repo.findLatestBySubjectId(notificationId, "default")
                 .map((final LedgerEntry e) -> e.sequenceNumber + 1)
                 .orElse(1);
     }

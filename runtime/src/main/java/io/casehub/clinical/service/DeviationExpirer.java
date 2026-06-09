@@ -30,6 +30,7 @@ public class DeviationExpirer {
     @Inject CommitmentService commitmentService;
     @Inject Event<ProtocolDeviationResolvedEvent> resolvedEvent;
     @Inject DeviationLedgerWriter ledgerWriter;
+    @Inject io.casehub.clinical.memory.ClinicalMemoryService memoryService;
 
     @Transactional
     public List<UUID> findOverdueIds() {
@@ -47,6 +48,7 @@ public class DeviationExpirer {
 
         d.piApprovalStatus = PiApprovalStatus.EXPIRED;
         commitmentService.fail(d.id.toString());
+        memoryService.storePiDecision(d.id, d.siteId, d.deviationType, PiApprovalStatus.EXPIRED, d.tenantId);
         ledgerWriter.writeResolutionEntry(d, PiApprovalStatus.EXPIRED,
             ClinicalActors.CLINICAL_SERVICE, ActorType.SYSTEM, "deviation-expiration-job");
         // Fire-and-forget: observer failures are asynchronous and not surfaced here.
@@ -58,7 +60,8 @@ public class DeviationExpirer {
             d.escalationRequirement != null ? d.escalationRequirement : EscalationRequirement.NONE,
             PiApprovalStatus.EXPIRED,
             d.deviationType,
-            null
+            null,
+            d.tenantId
         ));
     }
 }

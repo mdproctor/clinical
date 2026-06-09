@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,12 +55,12 @@ class DeviationLedgerWriterTest {
         dev.escalationRequirement = EscalationRequirement.NONE;
         dev.commandedAt = Instant.now();
         dev.responseDeadline = Instant.now().plusSeconds(3600);
-        when(ledgerEntryRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(ledgerEntryRepository.save(any(), any())).thenAnswer(i -> i.getArgument(0));
     }
 
     @Test
     void writeCommandEntry_sequenceNumber1WhenNoPriorEntries() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeCommandEntry(dev, "pi-001");
 
@@ -70,7 +71,7 @@ class DeviationLedgerWriterTest {
     @Test
     void writeCommandEntry_nullEscalationRequirementWritesNullColumn() {
         dev.escalationRequirement = null;
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeCommandEntry(dev, "pi-001");
 
@@ -82,7 +83,7 @@ class DeviationLedgerWriterTest {
     void writeCommandEntry_sequenceNumberIncrements() {
         LedgerEntry prior = new ProtocolDeviationLedgerEntry();
         prior.sequenceNumber = 2;
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.of(prior));
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.of(prior));
 
         writer.writeCommandEntry(dev, "pi-001");
 
@@ -92,7 +93,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeCommandEntry_setsCorrectFields() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeCommandEntry(dev, "pi-001");
 
@@ -115,7 +116,7 @@ class DeviationLedgerWriterTest {
     void writeResolutionEntry_approved_setsCorrectFields() {
         LedgerEntry prior = new ProtocolDeviationLedgerEntry();
         prior.sequenceNumber = 1;
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.of(prior));
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.of(prior));
 
         writer.writeResolutionEntry(dev, PiApprovalStatus.APPROVED, "pi-actor-001", ActorType.HUMAN, "pi-authoriser");
 
@@ -133,7 +134,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeResolutionEntry_escalated_setsTerminalStatus() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeResolutionEntry(dev, PiApprovalStatus.ESCALATED, "pi-actor-001", ActorType.HUMAN, "pi-authoriser");
 
@@ -143,7 +144,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeResolutionEntry_rejected_setsTerminalStatus() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeResolutionEntry(dev, PiApprovalStatus.REJECTED, "pi-actor-001", ActorType.HUMAN, "pi-authoriser");
 
@@ -154,7 +155,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeResolutionEntry_expired_stores_provided_actorId() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeResolutionEntry(dev, PiApprovalStatus.EXPIRED, "system", ActorType.SYSTEM, "deviation-expiration-job");
 
@@ -173,7 +174,7 @@ class DeviationLedgerWriterTest {
     void writeSponsorNotifiedEntry_uuid_sets_sponsor_notifier_role_and_notified_at() {
         final UUID deviationId = dev.id;
         final UUID siteId = dev.siteId;
-        when(ledgerEntryRepository.findLatestBySubjectId(deviationId))
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(deviationId), any()))
             .thenReturn(Optional.of(existingEntry(2)));
 
         writer.writeSponsorNotifiedEntry(deviationId, siteId, DeviationSeverity.MINOR,
@@ -197,7 +198,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeSponsorNotifiedEntry_uuid_null_pi_fields_for_expired_status() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeSponsorNotifiedEntry(dev.id, dev.siteId, DeviationSeverity.MAJOR,
                 FIXED_INSTANT, null, null);
@@ -215,7 +216,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeExhaustedNotificationEntry_sets_exhausted_role_and_null_sponsorNotifiedAt() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeExhaustedNotificationEntry(dev.id, dev.siteId, DeviationSeverity.CRITICAL,
                 FIXED_INSTANT);
@@ -236,7 +237,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeExhaustedNotificationEntry_sequenceNumber_increments_after_prior_entries() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id))
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any()))
             .thenReturn(Optional.of(existingEntry(4)));
 
         writer.writeExhaustedNotificationEntry(dev.id, dev.siteId, DeviationSeverity.MINOR,
@@ -248,7 +249,7 @@ class DeviationLedgerWriterTest {
 
     @Test
     void writeObserverFailureEntry_persists_with_null_sponsorNotifiedAt_and_clinical_service_actorId() {
-        when(ledgerEntryRepository.findLatestBySubjectId(dev.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(dev.id), any())).thenReturn(Optional.empty());
 
         writer.writeObserverFailureEntry(dev.id, dev.siteId, DeviationSeverity.MINOR, FIXED_INSTANT);
 
@@ -274,7 +275,7 @@ class DeviationLedgerWriterTest {
 
     private ProtocolDeviationLedgerEntry captureEntry() {
         ArgumentCaptor<LedgerEntry> captor = ArgumentCaptor.forClass(LedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         return (ProtocolDeviationLedgerEntry) captor.getValue();
     }
 }

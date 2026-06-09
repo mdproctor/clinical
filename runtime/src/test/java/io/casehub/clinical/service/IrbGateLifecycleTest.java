@@ -153,7 +153,7 @@ class IrbGateLifecycleTest {
         return new ProtocolDeviationResolvedEvent(
                 deviationId, siteId, DeviationSeverity.CRITICAL,
                 EscalationRequirement.IRB_REVIEW, PiApprovalStatus.APPROVED,
-                "CONSENT_DEVIATION", "pi-001");
+                "CONSENT_DEVIATION", "pi-001", "test-tenant");
     }
 
     private List<WorkItem> irbWorkItems() {

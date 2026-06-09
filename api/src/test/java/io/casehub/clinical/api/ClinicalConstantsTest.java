@@ -72,7 +72,7 @@ class ClinicalConstantsTest {
         var event = new ProtocolDeviationResolvedEvent(
             UUID.randomUUID(), UUID.randomUUID(),
             DeviationSeverity.CRITICAL, EscalationRequirement.IRB_REVIEW,
-            PiApprovalStatus.ESCALATED, "DOSING", "pi-001"
+            PiApprovalStatus.ESCALATED, "DOSING", "pi-001", "test-tenant"
         );
         assertThat(event.escalationRequirement()).isEqualTo(EscalationRequirement.IRB_REVIEW);
         assertThat(event.terminalStatus()).isEqualTo(PiApprovalStatus.ESCALATED);

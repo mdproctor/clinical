@@ -24,6 +24,7 @@ public class PiResponseListener {
 
     @Inject Event<ProtocolDeviationResolvedEvent> resolvedEvent;
     @Inject DeviationLedgerWriter ledgerWriter;
+    @Inject io.casehub.clinical.memory.ClinicalMemoryService memoryService;
 
     @Transactional
     public void onMessage(@ObservesAsync MessageReceivedEvent event) {
@@ -55,6 +56,8 @@ public class PiResponseListener {
 
         ledgerWriter.writeResolutionEntry(deviation, deviation.piApprovalStatus,
             senderId, ActorType.HUMAN, "pi-authoriser");
+        memoryService.storePiDecision(deviation.id, deviation.siteId,
+            deviation.deviationType, deviation.piApprovalStatus, deviation.tenantId);
 
         resolvedEvent.fireAsync(new ProtocolDeviationResolvedEvent(
             deviation.id, deviation.siteId, deviation.severity,
@@ -62,7 +65,8 @@ public class PiResponseListener {
                 ? deviation.escalationRequirement : EscalationRequirement.NONE,
             deviation.piApprovalStatus,
             deviation.deviationType,
-            senderId
+            senderId,
+            deviation.tenantId
         ));
     }
 }

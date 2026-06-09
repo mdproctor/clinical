@@ -44,11 +44,11 @@ public class AdverseEventLedgerWriter {
         entry.ctcaeGrade = ae.grade.name();
         entry.reportedAt = ae.reportedAt;
         entry.slaDeadline = ae.slaDeadline;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     private int nextSequenceNumber(UUID aeId) {
-        return ledgerEntryRepository.findLatestBySubjectId(aeId)
+        return ledgerEntryRepository.findLatestBySubjectId(aeId, "default")
             .map(e -> e.sequenceNumber + 1)
             .orElse(1);
     }

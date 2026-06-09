@@ -15,6 +15,9 @@ public class ProtocolDeviation extends PanacheEntityBase {
     @Id
     public UUID id;
 
+    @Column(name = "tenant_id", nullable = false)
+    public String tenantId = "default";
+
     @Column(name = "site_id", nullable = false)
     public UUID siteId;
 

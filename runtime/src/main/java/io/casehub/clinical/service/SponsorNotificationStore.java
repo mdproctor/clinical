@@ -43,6 +43,7 @@ class SponsorNotificationStore {
         }
         final SponsorNotification n = new SponsorNotification();
         n.id = UUID.randomUUID();
+        n.tenantId = req.tenantId();
         n.deviationId = req.deviationId();
         n.trialId = req.trialId();
         n.siteId = req.siteId();

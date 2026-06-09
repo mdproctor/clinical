@@ -50,7 +50,7 @@ class DeviationExpirationJobTest {
         ProtocolDeviation loaded = ProtocolDeviation.findById(devId);
         assertThat(loaded.piApprovalStatus).isEqualTo(PiApprovalStatus.EXPIRED);
 
-        var entries = ledgerRepo.findBySubjectId(devId);
+        var entries = ledgerRepo.findBySubjectId(devId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.terminalStatus).isEqualTo("EXPIRED");
@@ -70,8 +70,8 @@ class DeviationExpirationJobTest {
 
         job.checkExpiredCommitments();
 
-        assertThat(ledgerRepo.findBySubjectId(devId1)).hasSize(1);
-        assertThat(ledgerRepo.findBySubjectId(devId2)).hasSize(1);
+        assertThat(ledgerRepo.findBySubjectId(devId1, "default")).hasSize(1);
+        assertThat(ledgerRepo.findBySubjectId(devId2, "default")).hasSize(1);
     }
 
     @Test

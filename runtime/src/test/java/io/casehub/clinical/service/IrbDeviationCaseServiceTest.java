@@ -30,7 +30,7 @@ class IrbDeviationCaseServiceTest {
         var event = new ProtocolDeviationResolvedEvent(
                 UUID.randomUUID(), UUID.randomUUID(), DeviationSeverity.MAJOR,
                 EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.APPROVED,
-                "PROTOCOL_DEVIATION", "pi-001");
+                "PROTOCOL_DEVIATION", "pi-001", "test-tenant");
 
         service.onDeviationResolved(event);
 
@@ -42,7 +42,7 @@ class IrbDeviationCaseServiceTest {
         var event = new ProtocolDeviationResolvedEvent(
                 UUID.randomUUID(), UUID.randomUUID(), DeviationSeverity.CRITICAL,
                 EscalationRequirement.IRB_REVIEW, PiApprovalStatus.REJECTED,
-                "CONSENT_DEVIATION", null);
+                "CONSENT_DEVIATION", null, "test-tenant");
 
         service.onDeviationResolved(event);
 

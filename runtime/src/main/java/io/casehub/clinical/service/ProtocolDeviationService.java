@@ -40,6 +40,7 @@ public class ProtocolDeviationService {
     @Inject ChannelService channelService;
     @Inject MessageService messageService;
     @Inject DeviationLedgerWriter ledgerWriter;
+    @Inject io.casehub.clinical.memory.ClinicalMemoryService memoryService;
 
     @Transactional
     public void reportDeviation(ProtocolDeviation deviation) {
@@ -82,6 +83,8 @@ public class ProtocolDeviationService {
         deviation.persist();
 
         ledgerWriter.writeCommandEntry(deviation, site.investigatorId);
+        memoryService.storeDeviationReport(deviation.id, deviation.siteId,
+            deviation.deviationType, deviation.severity, deviation.tenantId);
     }
 
     private void ensureChannel(String name) {

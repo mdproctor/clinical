@@ -49,7 +49,7 @@ public class SafetyOfficerNotificationLedgerWriter {
         entry.destination = destination;
         entry.delivered = delivered;
         entry.notifiedAt = now;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /**
@@ -88,11 +88,11 @@ public class SafetyOfficerNotificationLedgerWriter {
         entry.destination = null;
         entry.delivered = false;
         entry.notifiedAt = now;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     private int nextSequenceNumber(final UUID aeId) {
-        return ledgerEntryRepository.findLatestBySubjectId(aeId)
+        return ledgerEntryRepository.findLatestBySubjectId(aeId, "default")
             .map(e -> e.sequenceNumber + 1)
             .orElse(1);
     }

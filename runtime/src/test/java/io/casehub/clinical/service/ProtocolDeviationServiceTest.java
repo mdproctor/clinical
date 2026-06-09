@@ -122,7 +122,7 @@ class ProtocolDeviationServiceTest {
     @Transactional
     void ledgerEntryIsWritten() {
         assertThat(deviationId).as("deviationId set by Order(1)").isNotNull();
-        var entries = ledgerRepo.findBySubjectId(deviationId);
+        var entries = ledgerRepo.findBySubjectId(deviationId, "default");
         assertThat(entries).hasSize(1);
         assertThat(entries.get(0)).isInstanceOf(ProtocolDeviationLedgerEntry.class);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);

@@ -151,6 +151,19 @@
         <version>${version.io.casehub}</version>
         <scope>test</scope>
       </dependency>
+      <!-- JPA-backed CaseMemoryStore — @ApplicationScoped, displaces NoOpCaseMemoryStore by classpath presence -->
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-memory-jpa</artifactId>
+        <version>${version.io.casehub}</version>
+      </dependency>
+      <!-- In-memory CaseMemoryStore — @Alternative @Priority(1) for @QuarkusTest isolation -->
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-memory-inmem</artifactId>
+        <version>${version.io.casehub}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

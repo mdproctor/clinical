@@ -34,7 +34,7 @@ class IrbApprovalLedgerWriterTest {
     void writeDecisionEntry_persists_correct_fields() {
         Instant now = Instant.parse("2026-05-22T10:00:00Z");
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         IrbApproval approval = new IrbApproval();
         approval.id = UUID.randomUUID();
@@ -47,7 +47,7 @@ class IrbApprovalLedgerWriterTest {
 
         ArgumentCaptor<IrbApprovalLedgerEntry> captor =
                 ArgumentCaptor.forClass(IrbApprovalLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
 
         IrbApprovalLedgerEntry entry = captor.getValue();
         assertThat(entry.irbApprovalId).isEqualTo(approval.id);
@@ -63,7 +63,7 @@ class IrbApprovalLedgerWriterTest {
     void writeObserverFailureEntry_uses_system_actor_and_irb_committee_observer_failed_role() {
         Instant now = Instant.parse("2026-05-31T10:00:00Z");
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         IrbApproval approval = new IrbApproval();
         approval.id = UUID.randomUUID();
@@ -76,7 +76,7 @@ class IrbApprovalLedgerWriterTest {
 
         ArgumentCaptor<IrbApprovalLedgerEntry> captor =
                 ArgumentCaptor.forClass(IrbApprovalLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         IrbApprovalLedgerEntry entry = captor.getValue();
         assertThat(entry.actorId).isEqualTo(ClinicalActors.CLINICAL_SERVICE);
         assertThat(entry.actorType).isEqualTo(ActorType.SYSTEM);

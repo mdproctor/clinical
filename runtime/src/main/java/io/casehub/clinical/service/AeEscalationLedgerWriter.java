@@ -42,7 +42,7 @@ public class AeEscalationLedgerWriter {
         entry.safetyReviewOutcome = safetyReviewOutcome;
         entry.dsmbEscalated = dsmbEscalated;
         entry.completedAt = completedAt;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /**
@@ -69,11 +69,11 @@ public class AeEscalationLedgerWriter {
         entry.ctcaeGrade = grade != null ? grade.name() : null;
         entry.dsmbEscalated = false;
         entry.completedAt = now;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     private int nextSequenceNumber(UUID aeId) {
-        return ledgerEntryRepository.findLatestBySubjectId(aeId)
+        return ledgerEntryRepository.findLatestBySubjectId(aeId, "default")
                 .map(e -> e.sequenceNumber + 1)
                 .orElse(1);
     }

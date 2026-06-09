@@ -16,6 +16,9 @@ public class AdverseEvent extends PanacheEntityBase {
     @Id
     public UUID id;
 
+    @Column(name = "tenant_id", nullable = false)
+    public String tenantId = "default";
+
     @Column(name = "enrollment_id", nullable = false)
     public UUID enrollmentId;
 

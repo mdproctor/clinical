@@ -44,7 +44,7 @@ class SponsorNotificationStoreTest {
         request = new SponsorNotificationRequest(
                 trialId, siteId, deviationId, "CONSENT_DEVIATION",
                 DeviationSeverity.MAJOR, PiApprovalStatus.ESCALATED,
-                "dr-smith@v1", "Dr. Smith", "slack", "https://hooks.slack.com/test");
+                "dr-smith@v1", "Dr. Smith", "slack", "https://hooks.slack.com/test", "test-tenant");
     }
 
     // ── createPending ─────────────────────────────────────────────────────────
@@ -185,7 +185,7 @@ class SponsorNotificationStoreTest {
             store.createPending(new SponsorNotificationRequest(
                     UUID.randomUUID(), UUID.randomUUID(), extra, "TYPE",
                     DeviationSeverity.MINOR, PiApprovalStatus.ESCALATED,
-                    null, null, "slack", "https://dest"));
+                    null, null, "slack", "https://dest", "test-tenant"));
         }
 
         final List<UUID> ids = store.findEligibleIds(FIXED, 2);
@@ -251,7 +251,7 @@ class SponsorNotificationStoreTest {
         return new SponsorNotificationRequest(
                 trialId, siteId, deviationId, "CONSENT_DEVIATION",
                 DeviationSeverity.MAJOR, status,
-                "dr-smith@v1", "Dr. Smith", "slack", "https://hooks.slack.com/test");
+                "dr-smith@v1", "Dr. Smith", "slack", "https://hooks.slack.com/test", "test-tenant");
     }
 
     @Transactional

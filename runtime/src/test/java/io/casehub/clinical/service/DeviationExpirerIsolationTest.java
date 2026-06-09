@@ -75,8 +75,8 @@ class DeviationExpirerIsolationTest {
             .isEqualTo(1);
 
         // Exactly one ledger entry across both deviations
-        int totalEntries = ledgerRepo.findBySubjectId(devId1).size()
-            + ledgerRepo.findBySubjectId(devId2).size();
+        int totalEntries = ledgerRepo.findBySubjectId(devId1, "default").size()
+            + ledgerRepo.findBySubjectId(devId2, "default").size();
         assertThat(totalEntries)
             .as("exactly one EXPIRED ledger entry — the failed deviation's sub-transaction rolled back")
             .isEqualTo(1);

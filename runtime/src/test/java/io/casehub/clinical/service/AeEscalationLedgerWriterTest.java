@@ -34,13 +34,13 @@ class AeEscalationLedgerWriterTest {
         UUID aeId = UUID.randomUUID();
         UUID enrollmentId = UUID.randomUUID();
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeCompletionEntry(aeId, enrollmentId, CtcaeGrade.GRADE_4, "REVIEWED", true, now);
 
         ArgumentCaptor<AeEscalationLedgerEntry> captor =
                 ArgumentCaptor.forClass(AeEscalationLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
 
         AeEscalationLedgerEntry entry = captor.getValue();
         assertThat(entry.aeId).isEqualTo(aeId);
@@ -60,13 +60,13 @@ class AeEscalationLedgerWriterTest {
         UUID aeId = UUID.randomUUID();
         UUID enrollmentId = UUID.randomUUID();
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeCompletionEntry(aeId, enrollmentId, null, null, false, now);
 
         ArgumentCaptor<AeEscalationLedgerEntry> captor =
                 ArgumentCaptor.forClass(AeEscalationLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         assertThat(captor.getValue().ctcaeGrade).isNull();
     }
 
@@ -76,13 +76,13 @@ class AeEscalationLedgerWriterTest {
         UUID aeId = UUID.randomUUID();
         UUID enrollmentId = UUID.randomUUID();
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeObserverFailureEntry(aeId, enrollmentId, null);
 
         ArgumentCaptor<AeEscalationLedgerEntry> captor =
                 ArgumentCaptor.forClass(AeEscalationLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         AeEscalationLedgerEntry entry = captor.getValue();
         assertThat(entry.ctcaeGrade).isNull();
         assertThat(entry.actorRole).isEqualTo("AeEscalationCase-observer-failed");
@@ -99,13 +99,13 @@ class AeEscalationLedgerWriterTest {
         UUID aeId = UUID.randomUUID();
         UUID enrollmentId = UUID.randomUUID();
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeObserverFailureEntry(aeId, enrollmentId, CtcaeGrade.GRADE_3);
 
         ArgumentCaptor<AeEscalationLedgerEntry> captor =
                 ArgumentCaptor.forClass(AeEscalationLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         assertThat(captor.getValue().ctcaeGrade).isEqualTo("GRADE_3");
     }
 }

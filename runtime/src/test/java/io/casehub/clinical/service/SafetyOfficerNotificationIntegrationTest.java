@@ -78,7 +78,7 @@ class SafetyOfficerNotificationIntegrationTest {
         UUID aeId = UUID.randomUUID();
         UUID enrollmentId = UUID.randomUUID();
         AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3, Instant.now());
+            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
@@ -91,7 +91,7 @@ class SafetyOfficerNotificationIntegrationTest {
 
         SafetyOfficerNotificationLedgerEntry entry =
             (SafetyOfficerNotificationLedgerEntry)
-            ledgerEntryRepository.findLatestBySubjectId(aeId).orElse(null);
+            ledgerEntryRepository.findLatestBySubjectId(aeId, "default").orElse(null);
         assertThat(entry).isNotNull();
         assertThat(entry.delivered).isTrue();
         assertThat(entry.aeId).isEqualTo(aeId);
@@ -108,7 +108,7 @@ class SafetyOfficerNotificationIntegrationTest {
         UUID aeId = UUID.randomUUID();
         UUID enrollmentId = UUID.randomUUID();
         AdverseEventReportedEvent event = new AdverseEventReportedEvent(
-            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_4, Instant.now());
+            aeId, enrollmentId, siteId, CtcaeGrade.GRADE_4, Instant.now(), "test-tenant");
 
         listener.onAeReported(event);
 
@@ -116,7 +116,7 @@ class SafetyOfficerNotificationIntegrationTest {
 
         SafetyOfficerNotificationLedgerEntry entry =
             (SafetyOfficerNotificationLedgerEntry)
-            ledgerEntryRepository.findLatestBySubjectId(aeId).orElse(null);
+            ledgerEntryRepository.findLatestBySubjectId(aeId, "default").orElse(null);
         assertThat(entry).isNotNull();
         assertThat(entry.delivered).isFalse();
         assertThat(entry.connectorId).isEqualTo("slack");

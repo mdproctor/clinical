@@ -51,7 +51,7 @@ public class DeviationLedgerWriter {
         entry.responseDeadline = dev.responseDeadline;
         entry.escalationRequirement = dev.escalationRequirement != null
             ? dev.escalationRequirement.name() : null;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     public void writeResolutionEntry(ProtocolDeviation dev, PiApprovalStatus terminalStatus,
@@ -64,7 +64,7 @@ public class DeviationLedgerWriter {
         entry.occurredAt = clock.instant();
         entry.terminalStatus = terminalStatus.name();
         entry.resolvedAt = entry.occurredAt;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /**
@@ -95,7 +95,7 @@ public class DeviationLedgerWriter {
         entry.sponsorNotifiedAt = notifiedAt;
         entry.piId = piId;
         entry.piDisplayName = piDisplayName;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /**
@@ -121,7 +121,7 @@ public class DeviationLedgerWriter {
         entry.actorRole = "sponsor-notifier-exhausted";
         entry.occurredAt = occurredAt;
         entry.sponsorNotifiedAt = null;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /**
@@ -145,7 +145,7 @@ public class DeviationLedgerWriter {
         entry.actorRole = reason;
         entry.occurredAt = now;
         entry.sponsorNotifiedAt = null;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /** Called from SponsorNotificationListener observer fallback path. Commits in its own REQUIRES_NEW transaction. */
@@ -165,7 +165,7 @@ public class DeviationLedgerWriter {
         entry.actorRole = "sponsor-notifier-observer-failed";
         entry.occurredAt = now;
         entry.sponsorNotifiedAt = null;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     private ProtocolDeviationLedgerEntry baseEntry(ProtocolDeviation dev) {
@@ -180,7 +180,7 @@ public class DeviationLedgerWriter {
     }
 
     private int nextSequenceNumber(UUID deviationId) {
-        return ledgerEntryRepository.findLatestBySubjectId(deviationId)
+        return ledgerEntryRepository.findLatestBySubjectId(deviationId, "default")
             .map(e -> e.sequenceNumber + 1)
             .orElse(1);
     }

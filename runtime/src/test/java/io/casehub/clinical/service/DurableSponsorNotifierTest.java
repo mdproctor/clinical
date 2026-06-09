@@ -32,7 +32,7 @@ class DurableSponsorNotifierTest {
         final SponsorNotificationRequest req = new SponsorNotificationRequest(
                 UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
                 "CONSENT_DEVIATION", DeviationSeverity.MAJOR, PiApprovalStatus.ESCALATED,
-                "dr-smith@v1", "Dr. Smith", "slack", "https://dest");
+                "dr-smith@v1", "Dr. Smith", "slack", "https://dest", "test-tenant");
 
         notifier.notify(req);
 

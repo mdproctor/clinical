@@ -61,6 +61,7 @@ public class IrbDeviationCaseService {
 
         IrbApproval approval = new IrbApproval();
         approval.id = UUID.randomUUID();
+        approval.tenantId = event.tenantId();
         approval.siteId = event.siteId();
         approval.deviationId = event.deviationId();
         approval.reviewType = "PROTOCOL_DEVIATION";

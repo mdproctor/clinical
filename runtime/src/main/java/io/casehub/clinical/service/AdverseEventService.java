@@ -8,6 +8,8 @@ import io.casehub.clinical.api.spi.AdverseEventEscalationPolicy;
 import io.casehub.clinical.api.spi.AdverseEventEscalationRequirements;
 import io.casehub.clinical.entity.AdverseEvent;
 import io.casehub.clinical.entity.PatientEnrollment;
+import io.casehub.clinical.memory.ClinicalMemoryService;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.work.runtime.model.WorkItemCreateRequest;
 import io.casehub.work.runtime.model.WorkItemPriority;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -27,11 +29,14 @@ public class AdverseEventService {
     @Inject ObjectMapper objectMapper;
     @Inject AdverseEventEscalationPolicy policy;
     @Inject Event<AdverseEventReportedEvent> reportedEvents;
+    @Inject CurrentPrincipal principal;
+    @Inject ClinicalMemoryService memoryService;
 
     @Transactional
     public void reportAdverseEvent(AdverseEvent ae) {
         ae.reportedAt = Instant.now();
         ae.slaDeadline = ae.reportedAt.plus(ae.grade.sla().orElseThrow());
+        ae.tenantId = principal.tenancyId();
 
         UUID siteId = resolveSiteId(ae.enrollmentId);
         AdverseEventEscalationRequirements requirements =
@@ -57,10 +62,11 @@ public class AdverseEventService {
 
         ae.persist();
         ledgerWriter.writeReportEntry(ae);
+        memoryService.storeAeReport(ae.id, ae.enrollmentId, siteId, ae.grade, ae.tenantId);
 
         if (requirements.engineCaseRequired()) {
             reportedEvents.fireAsync(new AdverseEventReportedEvent(
-                    ae.id, ae.enrollmentId, siteId, ae.grade, ae.reportedAt));
+                    ae.id, ae.enrollmentId, siteId, ae.grade, ae.reportedAt, ae.tenantId));
         }
     }
 

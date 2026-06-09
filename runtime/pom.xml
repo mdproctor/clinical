@@ -50,6 +50,17 @@
       <artifactId>casehub-platform-config</artifactId>
     </dependency>
 
+    <!-- Layer 7: CaseMemoryStore — JPA (prod) displaces NoOpCaseMemoryStore; in-memory (test) selected via selected-alternatives -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-platform-memory-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-platform-memory-inmem</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Layer 5: platform expression engine + @DefaultBean mocks (required by casehub-engine) -->
     <dependency>
       <groupId>io.casehub</groupId>

@@ -17,4 +17,5 @@ public record AdverseEventReportedEvent(
     UUID enrollmentId,
     UUID siteId,
     CtcaeGrade grade,
-    Instant reportedAt) {}
+    Instant reportedAt,
+    String tenantId) {}

@@ -36,6 +36,9 @@ public class ClinicalTrial extends PanacheEntityBase {
     @Column(name = "sponsor_notification_destination")
     public String sponsorNotificationDestination;
 
+    @Column(name = "tenant_id", nullable = false)
+    public String tenantId = "default";
+
     @Column(name = "safety_officer_connector_id")
     public String safetyOfficerConnectorId;
 

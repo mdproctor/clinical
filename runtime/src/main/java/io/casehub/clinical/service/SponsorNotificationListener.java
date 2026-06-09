@@ -102,7 +102,8 @@ public class SponsorNotificationListener {
                 event.piId(),
                 piDisplayName,
                 trial.sponsorNotificationConnectorId,
-                trial.sponsorNotificationDestination
+                trial.sponsorNotificationDestination,
+                event.tenantId()
             ));
         } catch (Exception e) {
             Log.errorf(e, "Unexpected error in sponsor notification for deviation %s — writing failed ledger entry", event.deviationId());

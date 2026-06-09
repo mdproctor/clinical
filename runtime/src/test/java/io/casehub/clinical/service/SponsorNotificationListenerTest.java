@@ -80,7 +80,7 @@ class SponsorNotificationListenerTest {
         ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             UUID.randomUUID(), siteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-            "CONSENT_DEVIATION", "dr-smith@v1"
+            "CONSENT_DEVIATION", "dr-smith@v1", "test-tenant"
         );
 
         listener.onDeviationResolved(event);
@@ -106,7 +106,7 @@ class SponsorNotificationListenerTest {
         ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             UUID.randomUUID(), siteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.EXPIRED,
-            "CONSENT_DEVIATION", null  // piId is null for EXPIRED
+            "CONSENT_DEVIATION", null, "test-tenant"  // piId is null for EXPIRED
         );
 
         listener.onDeviationResolved(event);
@@ -123,13 +123,13 @@ class SponsorNotificationListenerTest {
         ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             deviationId, siteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-            "CONSENT_DEVIATION", "dr-smith@v1"
+            "CONSENT_DEVIATION", "dr-smith@v1", "test-tenant"
         );
 
         assertThatCode(() -> listener.onDeviationResolved(event)).doesNotThrowAnyException();
 
         verify(sponsorNotifier, never()).notify(any());
-        var entries = ledgerEntryRepository.findBySubjectId(deviationId);
+        var entries = ledgerEntryRepository.findBySubjectId(deviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.actorRole).isEqualTo("sponsor-notifier-pi-resolver-failed");
@@ -145,13 +145,13 @@ class SponsorNotificationListenerTest {
         ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             deviationId, siteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-            "CONSENT_DEVIATION", "dr-smith@v1"
+            "CONSENT_DEVIATION", "dr-smith@v1", "test-tenant"
         );
 
         assertThatCode(() -> listener.onDeviationResolved(event)).doesNotThrowAnyException();
 
         verify(sponsorNotifier, never()).notify(any());
-        var entries = ledgerEntryRepository.findBySubjectId(deviationId);
+        var entries = ledgerEntryRepository.findBySubjectId(deviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.actorRole).isEqualTo("sponsor-notifier-pi-resolver-failed");
@@ -163,7 +163,7 @@ class SponsorNotificationListenerTest {
         ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             UUID.randomUUID(), siteId, DeviationSeverity.CRITICAL,
             EscalationRequirement.IRB_REVIEW, PiApprovalStatus.ESCALATED,
-            "PROTOCOL_PROCEDURE", "dr-smith@v1"
+            "PROTOCOL_PROCEDURE", "dr-smith@v1", "test-tenant"
         );
 
         listener.onDeviationResolved(event);
@@ -176,7 +176,7 @@ class SponsorNotificationListenerTest {
         ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             UUID.randomUUID(), siteId, DeviationSeverity.MINOR,
             EscalationRequirement.NONE, PiApprovalStatus.APPROVED,
-            "MINOR_DEVIATION", "dr-smith@v1"
+            "MINOR_DEVIATION", "dr-smith@v1", "test-tenant"
         );
 
         listener.onDeviationResolved(event);
@@ -237,7 +237,7 @@ class SponsorNotificationListenerTest {
         return new ProtocolDeviationResolvedEvent(
             UUID.randomUUID(), siteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-            "CONSENT_DEVIATION", "dr-smith@v1"
+            "CONSENT_DEVIATION", "dr-smith@v1", "test-tenant"
         );
     }
 
@@ -249,11 +249,11 @@ class SponsorNotificationListenerTest {
         final ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             deviationId, unknownSiteId, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-            "CONSENT_DEVIATION", "dr-smith@v1");
+            "CONSENT_DEVIATION", "dr-smith@v1", "test-tenant");
 
         listener.onDeviationResolved(event);
 
-        var entries = ledgerEntryRepository.findBySubjectId(deviationId);
+        var entries = ledgerEntryRepository.findBySubjectId(deviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.actorRole).isEqualTo("sponsor-notifier-skipped-site-not-found");
@@ -268,11 +268,11 @@ class SponsorNotificationListenerTest {
         final ProtocolDeviationResolvedEvent event = new ProtocolDeviationResolvedEvent(
             deviationId, site.id, DeviationSeverity.MAJOR,
             EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-            "CONSENT_DEVIATION", "dr-smith@v1");
+            "CONSENT_DEVIATION", "dr-smith@v1", "test-tenant");
 
         listener.onDeviationResolved(event);
 
-        var entries = ledgerEntryRepository.findBySubjectId(deviationId);
+        var entries = ledgerEntryRepository.findBySubjectId(deviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.actorRole).isEqualTo("sponsor-notifier-skipped-no-config");
@@ -287,7 +287,7 @@ class SponsorNotificationListenerTest {
             new ProtocolDeviationResolvedEvent(
                 deviationId, siteId, DeviationSeverity.MAJOR,
                 EscalationRequirement.SPONSOR_NOTIFICATION, PiApprovalStatus.ESCALATED,
-                "INFORMED_CONSENT", "dr-smith@v1");
+                "INFORMED_CONSENT", "dr-smith@v1", "test-tenant");
 
         doThrow(new RuntimeException("injected test failure"))
             .when(sponsorNotifier).notify(any());
@@ -295,7 +295,7 @@ class SponsorNotificationListenerTest {
         assertThatCode(() -> listener.onDeviationResolved(event))
             .doesNotThrowAnyException();
 
-        var entries = ledgerEntryRepository.findBySubjectId(deviationId);
+        var entries = ledgerEntryRepository.findBySubjectId(deviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry =
             (ProtocolDeviationLedgerEntry) entries.get(0);

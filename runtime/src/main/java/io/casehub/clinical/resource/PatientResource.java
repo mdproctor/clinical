@@ -9,6 +9,7 @@ import io.casehub.clinical.entity.AdverseEvent;
 import io.casehub.clinical.entity.PatientEnrollment;
 import io.casehub.clinical.entity.TrialSite;
 import io.casehub.clinical.service.AdverseEventService;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ import java.util.UUID;
 public class PatientResource {
 
     @Inject AdverseEventService adverseEventService;
+    @Inject CurrentPrincipal principal;
 
     public record EnrollPatientRequest(@NotBlank String patientId) {}
 
@@ -47,6 +49,7 @@ public class PatientResource {
 
         PatientEnrollment enrollment = new PatientEnrollment();
         enrollment.id = UUID.randomUUID();
+        enrollment.tenantId = principal.tenancyId();
         enrollment.siteId = siteId;
         enrollment.patientId = req.patientId();
         enrollment.consentStatus = ConsentStatus.PENDING;

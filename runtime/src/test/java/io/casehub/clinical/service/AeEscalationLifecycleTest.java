@@ -154,7 +154,7 @@ class AeEscalationLifecycleTest {
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private AdverseEventReportedEvent aeEvent(CtcaeGrade grade) {
-        return new AdverseEventReportedEvent(aeId, enrollmentId, siteId, grade, Instant.now());
+        return new AdverseEventReportedEvent(aeId, enrollmentId, siteId, grade, Instant.now(), "test-tenant");
     }
 
     private List<WorkItem> aeWorkItems() {

@@ -24,5 +24,6 @@ public record SponsorNotificationRequest(
     String piId,
     String piDisplayName,
     String sponsorNotificationConnectorId,
-    String sponsorNotificationDestination
+    String sponsorNotificationDestination,
+    String tenantId
 ) {}

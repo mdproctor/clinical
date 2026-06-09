@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +36,7 @@ class SafetyOfficerNotificationLedgerWriterTest {
     @Test
     void writeEntry_persists_correct_fields_on_successful_delivery() {
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeEntry(aeId, enrollmentId, siteId, CtcaeGrade.GRADE_5,
             "slack", "https://hooks.slack.com/test", true);
@@ -58,7 +59,7 @@ class SafetyOfficerNotificationLedgerWriterTest {
     @Test
     void writeEntry_sets_delivered_false_on_failed_delivery() {
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeEntry(aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3,
             "teams", "https://teams.webhook/test", false);
@@ -71,7 +72,7 @@ class SafetyOfficerNotificationLedgerWriterTest {
         when(clock.instant()).thenReturn(now);
         SafetyOfficerNotificationLedgerEntry existing = new SafetyOfficerNotificationLedgerEntry();
         existing.sequenceNumber = 5;
-        when(ledgerEntryRepository.findLatestBySubjectId(aeId)).thenReturn(Optional.of(existing));
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(aeId), any())).thenReturn(Optional.of(existing));
 
         writer.writeEntry(aeId, enrollmentId, siteId, CtcaeGrade.GRADE_4,
             "slack", "https://hooks.slack.com/test", true);
@@ -82,7 +83,7 @@ class SafetyOfficerNotificationLedgerWriterTest {
     @Test
     void writeObserverFailureEntry_writes_delivered_false_with_null_connector_fields() {
         when(clock.instant()).thenReturn(now);
-        when(ledgerEntryRepository.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         writer.writeObserverFailureEntry(aeId, enrollmentId, siteId, CtcaeGrade.GRADE_3);
 
@@ -102,7 +103,7 @@ class SafetyOfficerNotificationLedgerWriterTest {
     private SafetyOfficerNotificationLedgerEntry captureEntry() {
         ArgumentCaptor<SafetyOfficerNotificationLedgerEntry> captor =
             ArgumentCaptor.forClass(SafetyOfficerNotificationLedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         return captor.getValue();
     }
 }

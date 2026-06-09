@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,8 +44,8 @@ class SponsorNotificationLedgerWriterTest {
     @BeforeEach
     void setUp() {
         lenient().when(clock.instant()).thenReturn(FIXED);
-        when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
-        when(repo.findLatestBySubjectId(any())).thenReturn(Optional.empty());
+        when(repo.save(any(), any())).thenAnswer(i -> i.getArgument(0));
+        when(repo.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
         notification = new SponsorNotification();
         notification.id = UUID.randomUUID();
@@ -109,7 +110,7 @@ class SponsorNotificationLedgerWriterTest {
     void writeDelivered_increments_sequence_number_from_prior_entry() {
         final LedgerEntry prior = new SponsorNotificationLedgerEntry();
         prior.sequenceNumber = 3;
-        when(repo.findLatestBySubjectId(notification.id)).thenReturn(Optional.of(prior));
+        when(repo.findLatestBySubjectId(eq(notification.id), any())).thenReturn(Optional.of(prior));
 
         writer.writeDelivered(notification, 2, FIXED);
 
@@ -173,7 +174,7 @@ class SponsorNotificationLedgerWriterTest {
 
     private SponsorNotificationLedgerEntry captureEntry() {
         final ArgumentCaptor<LedgerEntry> captor = ArgumentCaptor.forClass(LedgerEntry.class);
-        verify(repo).save(captor.capture());
+        verify(repo).save(captor.capture(), any());
         return (SponsorNotificationLedgerEntry) captor.getValue();
     }
 }

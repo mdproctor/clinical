@@ -3,6 +3,8 @@ package io.casehub.clinical.resource;
 import io.casehub.clinical.api.model.SiteStatus;
 import io.casehub.clinical.entity.ClinicalTrial;
 import io.casehub.clinical.entity.TrialSite;
+import io.casehub.platform.api.identity.CurrentPrincipal;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class SiteResource {
 
+    @Inject CurrentPrincipal principal;
+
     public record AddSiteRequest(@NotBlank String investigatorId) {}
 
     @POST
@@ -28,6 +32,7 @@ public class SiteResource {
 
         TrialSite site = new TrialSite();
         site.id = UUID.randomUUID();
+        site.tenantId = principal.tenancyId();
         site.trialId = trialId;
         site.investigatorId = req.investigatorId();
         site.status = SiteStatus.PENDING;

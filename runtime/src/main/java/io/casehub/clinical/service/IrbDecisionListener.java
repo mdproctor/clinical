@@ -86,7 +86,8 @@ public class IrbDecisionListener {
             ledgerDecisionWritten = true;
 
             resolvedEvents.fireAsync(new IrbApprovalResolvedEvent(
-                    approval.id, deviationId, approval.siteId, decision, Instant.now()));
+                    approval.id, deviationId, approval.siteId, decision, Instant.now(),
+                    approval.tenantId));
         } catch (Exception e) {
             if (!ledgerDecisionWritten) {
                 LOG.errorf(e, "IrbDecisionListener: unexpected error for deviationId=%s approvalId=%s — writing failure entry", deviationId, approval.id);

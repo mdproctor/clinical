@@ -126,7 +126,7 @@ class DsmbRollupTest {
         ae.occurredAt = Instant.now();
         ae.reportedAt = Instant.now();
         ae.persist();
-        return new AdverseEventReportedEvent(aeId, enrollmentId, siteId, grade, Instant.now());
+        return new AdverseEventReportedEvent(aeId, enrollmentId, siteId, grade, Instant.now(), "test-tenant");
     }
 
     UUID createAndActivateTrial() {

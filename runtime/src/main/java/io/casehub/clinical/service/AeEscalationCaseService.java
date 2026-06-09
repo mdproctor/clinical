@@ -34,6 +34,7 @@ public class AeEscalationCaseService {
     @Inject ClinicalAdverseEventCaseHub caseHub;
     @Inject AdverseEventEscalationPolicy policy;
     @Inject TrialSafetySignalService trialSafetySignalService;
+    @Inject io.casehub.clinical.memory.ClinicalMemoryService memoryService;
 
     public void onAdverseEventReported(@ObservesAsync AdverseEventReportedEvent event) {
         try {
@@ -73,6 +74,11 @@ public class AeEscalationCaseService {
         ctx.put("grade", event.grade().name());
         ctx.put("requiresSeniorMonitor", requirements.requiresSeniorMonitor());
         ctx.put("requiresDsmbEscalation", requirements.requiresDsmbEscalation());
+        ctx.put("tenantId", ae.tenantId);
+        var patientCtx = memoryService.queryPatientContext(ae.enrollmentId, ae.tenantId);
+        var siteCtx    = memoryService.querySiteContext(event.siteId(), ae.tenantId);
+        ctx.put("patientContext", patientCtx.toContextMap());
+        ctx.put("siteContext",    siteCtx.toContextMap());
         return ctx;
     }
 

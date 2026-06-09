@@ -58,7 +58,7 @@ class DeviationExpirerTest {
         expirer.expireOne(devId); // first call — commits
         expirer.expireOne(devId); // second call — guard skips (EXPIRED ≠ COMMANDED)
 
-        assertThat(ledgerRepo.findBySubjectId(devId)).hasSize(1); // not 2
+        assertThat(ledgerRepo.findBySubjectId(devId, "default")).hasSize(1); // not 2
     }
 
     @Test
@@ -71,7 +71,7 @@ class DeviationExpirerTest {
         ProtocolDeviation loaded = ProtocolDeviation.findById(devId);
         assertThat(loaded.piApprovalStatus).isEqualTo(PiApprovalStatus.EXPIRED);
 
-        var entries = ledgerRepo.findBySubjectId(devId);
+        var entries = ledgerRepo.findBySubjectId(devId, "default");
         assertThat(entries).hasSize(1);
         assertThat(((ProtocolDeviationLedgerEntry) entries.get(0)).terminalStatus).isEqualTo("EXPIRED");
     }

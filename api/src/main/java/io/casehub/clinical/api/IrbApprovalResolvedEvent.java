@@ -16,4 +16,5 @@ public record IrbApprovalResolvedEvent(
     UUID deviationId,
     UUID siteId,
     IrbDecision decision,
-    Instant decidedAt) {}
+    Instant decidedAt,
+    String tenantId) {}

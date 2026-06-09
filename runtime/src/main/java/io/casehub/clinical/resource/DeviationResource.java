@@ -5,6 +5,7 @@ import io.casehub.clinical.api.model.PiApprovalStatus;
 import io.casehub.clinical.entity.ProtocolDeviation;
 import io.casehub.clinical.entity.TrialSite;
 import io.casehub.clinical.service.ProtocolDeviationService;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class DeviationResource {
 
     @Inject ProtocolDeviationService deviationService;
+    @Inject CurrentPrincipal principal;
 
     public record ReportDeviationRequest(
         @NotBlank String deviationType,
@@ -40,6 +42,7 @@ public class DeviationResource {
 
         ProtocolDeviation deviation = new ProtocolDeviation();
         deviation.id = UUID.randomUUID();
+        deviation.tenantId = principal.tenancyId();
         deviation.siteId = siteId;
         deviation.deviationType = req.deviationType();
         deviation.severity = req.severity();

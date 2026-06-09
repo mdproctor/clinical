@@ -41,7 +41,7 @@ public class IrbApprovalLedgerWriter {
         entry.irbDecision = approval.decision.name();
         entry.committeeId = approval.committeeId;
         entry.decidedAt = now;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     /**
@@ -75,11 +75,11 @@ public class IrbApprovalLedgerWriter {
         entry.irbDecision = approval.decision != null ? approval.decision.name() : "UNKNOWN";
         entry.committeeId = approval.committeeId != null ? approval.committeeId : "unknown";
         entry.decidedAt = now;
-        ledgerEntryRepository.save(entry);
+        ledgerEntryRepository.save(entry, "default");
     }
 
     private int nextSequenceNumber(UUID approvalId) {
-        return ledgerEntryRepository.findLatestBySubjectId(approvalId)
+        return ledgerEntryRepository.findLatestBySubjectId(approvalId, "default")
                 .map(e -> e.sequenceNumber + 1)
                 .orElse(1);
     }

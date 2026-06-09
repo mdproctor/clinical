@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +40,7 @@ class AdverseEventLedgerWriterTest {
     @BeforeEach
     void setUp() {
         when(clock.instant()).thenReturn(FIXED_INSTANT);
-        when(ledgerEntryRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(ledgerEntryRepository.save(any(), any())).thenAnswer(i -> i.getArgument(0));
 
         ae = new AdverseEvent();
         ae.id = UUID.randomUUID();
@@ -51,7 +52,7 @@ class AdverseEventLedgerWriterTest {
 
     @Test
     void writeReportEntry_sequenceNumber1WhenNoPriorEntries() {
-        when(ledgerEntryRepository.findLatestBySubjectId(ae.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(ae.id), any())).thenReturn(Optional.empty());
 
         writer.writeReportEntry(ae);
 
@@ -62,7 +63,7 @@ class AdverseEventLedgerWriterTest {
     void writeReportEntry_sequenceNumberIncrementsFromPrior() {
         LedgerEntry prior = new AdverseEventLedgerEntry();
         prior.sequenceNumber = 2;
-        when(ledgerEntryRepository.findLatestBySubjectId(ae.id)).thenReturn(Optional.of(prior));
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(ae.id), any())).thenReturn(Optional.of(prior));
 
         writer.writeReportEntry(ae);
 
@@ -71,7 +72,7 @@ class AdverseEventLedgerWriterTest {
 
     @Test
     void writeReportEntry_setsCorrectFields() {
-        when(ledgerEntryRepository.findLatestBySubjectId(ae.id)).thenReturn(Optional.empty());
+        when(ledgerEntryRepository.findLatestBySubjectId(eq(ae.id), any())).thenReturn(Optional.empty());
 
         writer.writeReportEntry(ae);
 
@@ -92,7 +93,7 @@ class AdverseEventLedgerWriterTest {
 
     private AdverseEventLedgerEntry captureEntry() {
         ArgumentCaptor<LedgerEntry> captor = ArgumentCaptor.forClass(LedgerEntry.class);
-        verify(ledgerEntryRepository).save(captor.capture());
+        verify(ledgerEntryRepository).save(captor.capture(), any());
         return (AdverseEventLedgerEntry) captor.getValue();
     }
 }

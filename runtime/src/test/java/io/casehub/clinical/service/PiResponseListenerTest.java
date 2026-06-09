@@ -94,7 +94,7 @@ class PiResponseListenerTest {
     @Test @Order(6)
     @Transactional
     void approvedMinorLedgerEntryWritten() {
-        var entries = ledgerRepo.findBySubjectId(minorDeviationId);
+        var entries = ledgerRepo.findBySubjectId(minorDeviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.terminalStatus).isEqualTo("APPROVED");
@@ -108,7 +108,7 @@ class PiResponseListenerTest {
     @Test @Order(7)
     @Transactional
     void escalatedCriticalLedgerEntryWritten() {
-        var entries = ledgerRepo.findBySubjectId(criticalDeviationId);
+        var entries = ledgerRepo.findBySubjectId(criticalDeviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.terminalStatus).isEqualTo("ESCALATED");
@@ -118,7 +118,7 @@ class PiResponseListenerTest {
     @Test @Order(8)
     @Transactional
     void rejectedLedgerEntryWritten() {
-        var entries = ledgerRepo.findBySubjectId(rejectedDeviationId);
+        var entries = ledgerRepo.findBySubjectId(rejectedDeviationId, "default");
         assertThat(entries).hasSize(1);
         ProtocolDeviationLedgerEntry entry = (ProtocolDeviationLedgerEntry) entries.get(0);
         assertThat(entry.terminalStatus).isEqualTo("REJECTED");

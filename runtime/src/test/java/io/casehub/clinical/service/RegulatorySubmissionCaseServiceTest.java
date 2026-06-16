@@ -7,10 +7,6 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.junit.jupiter.api.BeforeEach;
-import java.time.Duration;
-import java.util.Map;
-import org.mockito.ArgumentCaptor;
 
 import io.casehub.clinical.api.AdverseEventReportedEvent;
 import io.casehub.clinical.api.model.AeOutcome;
@@ -22,10 +18,14 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 @QuarkusTest
 class RegulatorySubmissionCaseServiceTest {
@@ -146,6 +146,25 @@ class RegulatorySubmissionCaseServiceTest {
             assertThat(ctx).containsKey("indReportingDeadline");
             assertThat(Instant.parse((String) ctx.get("indReportingDeadline")))
                     .isEqualTo(fixedReportedAt.plus(Duration.ofDays(15)));
+        });
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void grade5_case_context_includes_7_day_ind_deadline() {
+        final Instant fixedReportedAt = Instant.parse("2026-06-16T09:00:00Z");
+        UUID aeId = persistAe(CtcaeGrade.GRADE_5, true, fixedReportedAt);
+        AdverseEventReportedEvent event = buildEvent(aeId, CtcaeGrade.GRADE_5);
+
+        service.onAdverseEventReported(event);
+
+        await().atMost(10, SECONDS).pollInterval(100, MILLISECONDS).untilAsserted(() -> {
+            ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+            verify(regulatorySubmissionCaseHub).startCase(captor.capture());
+            Map<String, Object> ctx = captor.getValue();
+            assertThat(ctx).containsKey("indReportingDeadline");
+            assertThat(Instant.parse((String) ctx.get("indReportingDeadline")))
+                    .isEqualTo(fixedReportedAt.plus(Duration.ofDays(7)));
         });
     }
 

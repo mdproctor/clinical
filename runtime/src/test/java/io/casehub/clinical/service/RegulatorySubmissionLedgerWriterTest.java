@@ -88,7 +88,11 @@ class RegulatorySubmissionLedgerWriterTest {
                             && rsle.compliance()
                                     .map(c -> c.planRef)
                                     .orElse("")
-                                    .contains("(c)(1)(ii)");
+                                    .contains("(c)(1)(ii)")
+                            && !rsle.compliance()
+                                    .map(c -> c.planRef)
+                                    .orElse("")
+                                    .contains("(c)(1)(i)");
                 }),
                 eq("default"));
     }

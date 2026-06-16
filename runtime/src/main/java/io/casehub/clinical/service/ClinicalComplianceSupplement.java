@@ -2,6 +2,7 @@ package io.casehub.clinical.service;
 
 import io.casehub.clinical.api.model.CtcaeGrade;
 import io.casehub.ledger.runtime.model.supplement.ComplianceSupplement;
+import java.util.Objects;
 
 /**
  * Factory for {@link ComplianceSupplement} instances covering each type of AI agent
@@ -67,6 +68,7 @@ public final class ClinicalComplianceSupplement {
     }
 
     public static ComplianceSupplement regulatorySubmission(CtcaeGrade grade) {
+        Objects.requireNonNull(grade, "grade");
         ComplianceSupplement s = new ComplianceSupplement();
         s.planRef = switch (grade) {
             case GRADE_5 -> "21 CFR 312.32(c)(1)(i) — IND 7-day expedited safety reporting, unexpected fatal AE";

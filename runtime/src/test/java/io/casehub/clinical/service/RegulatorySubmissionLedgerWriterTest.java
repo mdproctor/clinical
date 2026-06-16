@@ -1,6 +1,5 @@
 package io.casehub.clinical.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,7 +53,11 @@ class RegulatorySubmissionLedgerWriterTest {
                             && rsle.compliance()
                                     .map(c -> c.planRef)
                                     .orElse("")
-                                    .contains("(c)(1)(i)");
+                                    .contains("(c)(1)(i)")
+                            && !rsle.compliance()
+                                    .map(c -> c.planRef)
+                                    .orElse("")
+                                    .contains("(c)(1)(ii)");
                 }),
                 eq("default"));
     }
@@ -76,7 +79,12 @@ class RegulatorySubmissionLedgerWriterTest {
         verify(ledgerEntryRepository).save(
                 argThat(entry -> {
                     RegulatorySubmissionLedgerEntry rsle = (RegulatorySubmissionLedgerEntry) entry;
-                    return "GRADE_3".equals(rsle.grade)
+                    return rsle.aeId.equals(ae.id)
+                            && "GRADE_3".equals(rsle.grade)
+                            && rsle.filedAt.equals(now)
+                            && rsle.subjectId.equals(ae.enrollmentId)
+                            && rsle.sequenceNumber == 1
+                            && rsle.id != null
                             && rsle.compliance()
                                     .map(c -> c.planRef)
                                     .orElse("")

@@ -8,15 +8,16 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.jboss.logging.Logger;
 
 /**
  * Observes AdverseEventReportedEvent concurrently with AeEscalationCaseService and
  * SusarOversightCaseService. Starts an IND expedited safety report filing case
- * when Grade 5 + unexpected criteria are met (21 CFR 312.32(c)(1)(i)).
+ * when Grade 3 + unexpected (15-day, 21 CFR 312.32(c)(1)(ii)) or
+ * Grade 5 + unexpected (7-day, 21 CFR 312.32(c)(1)(i)) criteria are met.
  *
  * <p>Three-phase pattern (ADR-0004): startCase().join() outside any @Transactional
  * boundary to avoid deadlocking the Agroal pool.
@@ -28,7 +29,19 @@ import org.jboss.logging.Logger;
 public class RegulatorySubmissionCaseService {
 
     private static final Logger LOG = Logger.getLogger(RegulatorySubmissionCaseService.class);
-    private static final Set<CtcaeGrade> REPORTABLE_GRADES = Set.of(CtcaeGrade.GRADE_5);
+
+    private static boolean isIndReportable(final CtcaeGrade grade) {
+        return grade == CtcaeGrade.GRADE_3 || grade == CtcaeGrade.GRADE_5;
+    }
+
+    // When #82 adds GRADE_4: add case GRADE_4 -> Duration.ofDays(7)
+    private static Duration indReportingWindow(final CtcaeGrade grade) {
+        return switch (grade) {
+            case GRADE_5 -> Duration.ofDays(7);
+            case GRADE_3 -> Duration.ofDays(15);
+            default -> throw new IllegalArgumentException("no IND reporting window for grade: " + grade);
+        };
+    }
 
     @Inject ClinicalRegulatorySubmissionCaseHub regulatorySubmissionCaseHub;
     @Inject RegulatorySubmissionLedgerWriter ledgerWriter;
@@ -56,8 +69,8 @@ public class RegulatorySubmissionCaseService {
             LOG.warnf("RegulatorySubmissionCaseService: AE not found for aeId=%s — skipping", event.aeId());
             return null;
         }
-        // Only Grade 5 + unexpected triggers IND expedited safety reporting
-        if (!REPORTABLE_GRADES.contains(ae.grade) || !ae.unexpected) {
+        // Grade 3 (15-day, §(c)(1)(ii)) and Grade 5 (7-day, §(c)(1)(i)) + unexpected trigger IND expedited safety reporting
+        if (!isIndReportable(ae.grade) || !ae.unexpected) {
             return null;
         }
         // Idempotency guard — protects against CDI at-least-once re-delivery
@@ -74,7 +87,8 @@ public class RegulatorySubmissionCaseService {
                 "grade", ae.grade.name(),
                 "unexpected", ae.unexpected,
                 "siteId", event.siteId().toString(),
-                "tenantId", ae.tenantId);
+                "tenantId", ae.tenantId,
+                "indReportingDeadline", ae.reportedAt.plus(indReportingWindow(ae.grade)).toString());
     }
 
     @Transactional

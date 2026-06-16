@@ -5,8 +5,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.BeforeEach;
+import java.time.Duration;
+import java.util.Map;
+import org.mockito.ArgumentCaptor;
 
 import io.casehub.clinical.api.AdverseEventReportedEvent;
 import io.casehub.clinical.api.model.AeOutcome;
@@ -100,6 +104,51 @@ class RegulatorySubmissionCaseServiceTest {
         assertThat(findAe(aeId).regulatorySubmissionCaseId).isNull();
     }
 
+    @Test
+    void grade3_unexpected_starts_regulatory_case() {
+        UUID aeId = persistAe(CtcaeGrade.GRADE_3, true);
+        AdverseEventReportedEvent event = buildEvent(aeId, CtcaeGrade.GRADE_3);
+
+        service.onAdverseEventReported(event);
+
+        await().atMost(10, SECONDS).pollInterval(100, MILLISECONDS).untilAsserted(() -> {
+            AdverseEvent ae = findAe(aeId);
+            assertThat(ae.regulatorySubmissionStatus).isEqualTo(RegulatorySubmissionStatus.PENDING);
+            assertThat(ae.regulatorySubmissionCaseId).isNotNull();
+        });
+    }
+
+    @Test
+    void grade3_expected_does_not_start_regulatory_case() {
+        UUID aeId = persistAe(CtcaeGrade.GRADE_3, false);
+        AdverseEventReportedEvent event = buildEvent(aeId, CtcaeGrade.GRADE_3);
+
+        service.onAdverseEventReported(event);
+
+        AdverseEvent ae = findAe(aeId);
+        assertThat(ae.regulatorySubmissionStatus).isEqualTo(RegulatorySubmissionStatus.NONE);
+        assertThat(ae.regulatorySubmissionCaseId).isNull();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void grade3_case_context_includes_15_day_ind_deadline() {
+        final Instant fixedReportedAt = Instant.parse("2026-06-16T09:00:00Z");
+        UUID aeId = persistAe(CtcaeGrade.GRADE_3, true, fixedReportedAt);
+        AdverseEventReportedEvent event = buildEvent(aeId, CtcaeGrade.GRADE_3);
+
+        service.onAdverseEventReported(event);
+
+        await().atMost(10, SECONDS).pollInterval(100, MILLISECONDS).untilAsserted(() -> {
+            ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+            verify(regulatorySubmissionCaseHub).startCase(captor.capture());
+            Map<String, Object> ctx = captor.getValue();
+            assertThat(ctx).containsKey("indReportingDeadline");
+            assertThat(Instant.parse((String) ctx.get("indReportingDeadline")))
+                    .isEqualTo(fixedReportedAt.plus(Duration.ofDays(15)));
+        });
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     @Transactional
@@ -114,6 +163,23 @@ class RegulatorySubmissionCaseServiceTest {
         ae.outcome = AeOutcome.ONGOING;
         ae.occurredAt = Instant.now();
         ae.reportedAt = Instant.now();
+        ae.tenantId = "test-tenant";
+        ae.persist();
+        return ae.id;
+    }
+
+    @Transactional
+    UUID persistAe(CtcaeGrade grade, boolean unexpected, Instant reportedAt) {
+        AdverseEvent ae = new AdverseEvent();
+        ae.id = UUID.randomUUID();
+        ae.enrollmentId = UUID.randomUUID();
+        ae.grade = grade;
+        ae.unexpected = unexpected;
+        ae.suspected = true;
+        ae.actuality = EventActuality.ACTUAL;
+        ae.outcome = AeOutcome.ONGOING;
+        ae.occurredAt = Instant.now();
+        ae.reportedAt = reportedAt;
         ae.tenantId = "test-tenant";
         ae.persist();
         return ae.id;

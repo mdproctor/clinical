@@ -8,7 +8,7 @@ spec:
 
   capabilities:
     - name: regulatory-submission
-      inputSchema: "{ grade: .grade, unexpected: .unexpected, aeId: .aeId }"
+      inputSchema: "{ grade: .grade, unexpected: .unexpected, aeId: .aeId, indReportingDeadline: .indReportingDeadline }"
 
   goals:
     - name: submission-complete

@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.jboss.logging.Logger;
 
@@ -31,6 +32,7 @@ public class RegulatorySubmissionCaseService {
     private static final Logger LOG = Logger.getLogger(RegulatorySubmissionCaseService.class);
 
     private static boolean isIndReportable(final CtcaeGrade grade) {
+        Objects.requireNonNull(grade, "grade");
         return grade == CtcaeGrade.GRADE_3 || grade == CtcaeGrade.GRADE_5;
     }
 

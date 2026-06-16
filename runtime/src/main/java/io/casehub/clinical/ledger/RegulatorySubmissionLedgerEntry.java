@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Tamper-evident record for IND expedited safety report filing obligation.
  *
- * <p>Written in Phase 1 of RegulatorySubmissionCaseService when Grade 3 or Grade 5
+ * <p>Written in Phase 1 of RegulatorySubmissionCaseService when Grade 5 or Grade 3
  * + unexpected criteria are confirmed (21 CFR 312.32(c)(1)(i)/(c)(1)(ii)). EU AI Act Art.12 compliance supplement attached at write time.
  *
  * <p>JOINED inheritance on qhorus datasource. V2023.

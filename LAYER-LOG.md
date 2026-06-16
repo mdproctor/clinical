@@ -722,7 +722,7 @@ subclass with persistent `@Column` fields. All clinical subclasses were updated 
 
 - ~~Gate rejection / expiry path (clinical#76)~~ — **closed 2026-06-13** by `SusarGateDecisionListener` (DB-discriminated `@ConsumeEvent` consumers for `casehub.action.gate.*` addresses; writes `SusarDecisionLedgerEntry` for all three outcomes). FDA audit trail now distinguishes pending / approved / rejected / expired gate states.
 - ~~Worker binding to `ae-escalation.yaml` (clinical#77)~~ — **closed 2026-06-13** by `ClinicalSusarOversightCaseHub` + `susar-oversight.yaml` (dedicated oversight case hub, started only when criteria confirmed; three-phase `SusarOversightCaseService` with idempotency guard). The `worker: { capability: ... }` YAML structure in the Layer 8 plan was also incorrect (`Binding` schema has no `worker:` field); corrected to `capability: name` directly on the binding with a programmatic `.function()` registration in `getDefinition()`.
-- Grade 3 unexpected AE — 15-day expedited path (21 CFR 312.32(c)(1)(ii)) — not gated. Deferred.
+- ~~Grade 3 unexpected AE — 15-day expedited path (21 CFR 312.32(c)(1)(ii))~~ — **closed 2026-06-16** by casehubio/clinical#81 (`isIndReportable()` + `indReportingWindow()` + `ClinicalComplianceSupplement.regulatorySubmission(CtcaeGrade)`; Grade 3 + unexpected → IND 15-day filing obligation placed in engine case context alongside existing Grade 5 7-day path). Grade 4 gap filed as casehubio/clinical#82.
 - `SUSAR_REGULATORY_FILING`, `PATIENT_WITHDRAWAL`, `DOSE_MODIFICATION`, `PROTOCOL_DEVIATION_RECORDING` — worker bindings absent pending agents.
 
 **Layer 8 addendum — GDPR compliance (clinical#7, 2026-06-13):**

@@ -1332,7 +1332,7 @@ Trial-level `YamlCaseHub` `CaseInstance` as cross-site blackboard — `runtime.s
 **Issues:** casehubio/clinical#47 (ActionRiskClassifier); casehubio/clinical#76 (SUSAR gate listener); casehubio/clinical#77 (SUSAR oversight case hub); casehubio/clinical#7 (GDPR + EU AI Act)
 **Navigation:** `git log --grep="#47\|#76\|#77\|#7" --oneline`
 **Blog:** `blog/2026-06-13-mdp01-what-the-binding-schema-actually-is.md`
-**Improvement refs:** `SusarOversightApprovedLifecycleTest` (gate creation path requires Quartz scheduler indexed — see CLAUDE.md forage entry); Grade 3 SUSAR path (21 CFR 312.32(c)(1)(ii) — deferred)
+**Improvement refs:** `SusarOversightApprovedLifecycleTest` (gate creation path requires Quartz scheduler indexed — see CLAUDE.md forage entry); ~~Grade 3 SUSAR path (21 CFR 312.32(c)(1)(ii) — deferred)~~ — closed casehubio/clinical#81 (2026-06-16)
 **Completed:** 2026-06-13 — clinical#47, #76, #77, #7
 
 #### What it adds
@@ -1355,7 +1355,7 @@ What this layer adds:
 - **`ClinicalComplianceSupplement`** factory — EU AI Act Art.12 supplement attached to all six AI-agent decision ledger entries via `entry.attach()`
 - **W3C PROV-DM export + Merkle inclusion proof endpoints** on `PatientResource`
 
-Not closed here: Grade 3 SUSAR path (15-day expedited, 21 CFR 312.32(c)(1)(ii)); `SUSAR_REGULATORY_FILING`, `PATIENT_WITHDRAWAL`, `DOSE_MODIFICATION`, `PROTOCOL_DEVIATION_RECORDING` worker bindings (pending agents); Layer 7 trust routing.
+Not closed here: `SUSAR_REGULATORY_FILING`, `PATIENT_WITHDRAWAL`, `DOSE_MODIFICATION`, `PROTOCOL_DEVIATION_RECORDING` worker bindings (pending agents); Layer 7 trust routing. ~~Grade 3 SUSAR path~~ closed casehubio/clinical#81 (2026-06-16).
 
 #### Accountability gaps closed
 

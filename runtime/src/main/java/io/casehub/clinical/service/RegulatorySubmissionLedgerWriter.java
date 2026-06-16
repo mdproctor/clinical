@@ -14,15 +14,15 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Writes tamper-evident record when Grade 5 + unexpected AE triggers IND expedited
- * safety reporting obligation (21 CFR 312.32(c)(1)(i)).
+ * Writes tamper-evident record when an unexpected Grade 3 (15-day, 21 CFR 312.32(c)(1)(ii))
+ * or Grade 5 (7-day, 21 CFR 312.32(c)(1)(i)) AE triggers IND expedited safety reporting.
  *
  * <p>Written in Phase 1 of RegulatorySubmissionCaseService in the same transaction
  * as the status update. {@code @Transactional(MANDATORY)} ensures this is always
  * called within an existing transaction.
  *
  * <p>EU AI Act Art.12 compliance supplement attached via
- * {@link ClinicalComplianceSupplement#regulatorySubmission()}.
+ * {@link ClinicalComplianceSupplement#regulatorySubmission(io.casehub.clinical.api.model.CtcaeGrade)}.
  */
 @ApplicationScoped
 public class RegulatorySubmissionLedgerWriter {
@@ -45,7 +45,7 @@ public class RegulatorySubmissionLedgerWriter {
         entry.aeId = ae.id;
         entry.grade = ae.grade != null ? ae.grade.name() : null;
         entry.filedAt = now;
-        entry.attach(ClinicalComplianceSupplement.regulatorySubmission());
+        entry.attach(ClinicalComplianceSupplement.regulatorySubmission(ae.grade));
         ledgerEntryRepository.save(entry, "default");
     }
 

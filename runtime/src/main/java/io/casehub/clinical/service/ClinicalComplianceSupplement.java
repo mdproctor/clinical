@@ -1,5 +1,6 @@
 package io.casehub.clinical.service;
 
+import io.casehub.clinical.api.model.CtcaeGrade;
 import io.casehub.ledger.runtime.model.supplement.ComplianceSupplement;
 
 /**
@@ -65,10 +66,14 @@ public final class ClinicalComplianceSupplement {
         return s;
     }
 
-    public static ComplianceSupplement regulatorySubmission() {
+    public static ComplianceSupplement regulatorySubmission(CtcaeGrade grade) {
         ComplianceSupplement s = new ComplianceSupplement();
-        s.planRef = "21 CFR 312.32(c)(1)(i) — IND expedited safety reporting, unexpected fatal/life-threatening AE";
-        s.algorithmRef = "RegulatorySubmissionCaseService (rule-based Grade 5 + unexpected criteria)";
+        s.planRef = switch (grade) {
+            case GRADE_5 -> "21 CFR 312.32(c)(1)(i) — IND 7-day expedited safety reporting, unexpected fatal AE";
+            case GRADE_3 -> "21 CFR 312.32(c)(1)(ii) — IND 15-day expedited safety reporting, unexpected serious AE";
+            default -> throw new IllegalArgumentException("no IND planRef for grade: " + grade);
+        };
+        s.algorithmRef = "RegulatorySubmissionCaseService (rule-based CTCAE grade + unexpected criteria)";
         s.humanOverrideAvailable = true;
         return s;
     }

@@ -1,5 +1,6 @@
 package io.casehub.clinical.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,7 +13,6 @@ import io.casehub.clinical.ledger.RegulatorySubmissionLedgerEntry;
 import io.casehub.ledger.runtime.repository.LedgerEntryRepository;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -29,8 +29,8 @@ class RegulatorySubmissionLedgerWriterTest {
     @InjectMocks RegulatorySubmissionLedgerWriter writer;
 
     @Test
-    void writes_entry_with_correct_fields() {
-        Instant now = Instant.parse("2026-06-15T12:00:00Z");
+    void grade5_writes_entry_with_c1i_planRef_and_correct_fields() {
+        final Instant now = Instant.parse("2026-06-15T12:00:00Z");
         when(clock.instant()).thenReturn(now);
         when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
 
@@ -50,7 +50,37 @@ class RegulatorySubmissionLedgerWriterTest {
                             && rsle.filedAt.equals(now)
                             && rsle.subjectId.equals(ae.enrollmentId)
                             && rsle.sequenceNumber == 1
-                            && rsle.id != null;
+                            && rsle.id != null
+                            && rsle.compliance()
+                                    .map(c -> c.planRef)
+                                    .orElse("")
+                                    .contains("(c)(1)(i)");
+                }),
+                eq("default"));
+    }
+
+    @Test
+    void grade3_writes_entry_with_c1ii_planRef() {
+        final Instant now = Instant.parse("2026-06-16T12:00:00Z");
+        when(clock.instant()).thenReturn(now);
+        when(ledgerEntryRepository.findLatestBySubjectId(any(), any())).thenReturn(Optional.empty());
+
+        AdverseEvent ae = new AdverseEvent();
+        ae.id = UUID.randomUUID();
+        ae.enrollmentId = UUID.randomUUID();
+        ae.grade = CtcaeGrade.GRADE_3;
+        ae.tenantId = "test-tenant";
+
+        writer.writeEntry(ae);
+
+        verify(ledgerEntryRepository).save(
+                argThat(entry -> {
+                    RegulatorySubmissionLedgerEntry rsle = (RegulatorySubmissionLedgerEntry) entry;
+                    return "GRADE_3".equals(rsle.grade)
+                            && rsle.compliance()
+                                    .map(c -> c.planRef)
+                                    .orElse("")
+                                    .contains("(c)(1)(ii)");
                 }),
                 eq("default"));
     }

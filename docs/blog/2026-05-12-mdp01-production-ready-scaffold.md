@@ -15,7 +15,7 @@ Claude read the blackboard code. What engine#195 actually shipped was a data mod
 
 I wasn't going to wire a workaround. The whole point of the architecture is that it does this properly. So we documented the gap, commented on engine#112 with the specific missing pieces, corrected the foundation gates table in CLAUDE.md, and moved to find what was actually unblocked.
 
-That turned out to be Epic 4: adverse event escalation. Grade 3-4 events (serious, per ICH E6(R3)) require reporting within 24 hours. Grade 5 (death) gets an internal 1-hour SLA. Grade 1-2 carry a 7-day window. ClinicalAgent, the peer-reviewed baseline we're comparing against, has no deadline tracking at all. casehub-work has `claimDeadline` on `WorkItemEntity` and an `EscalationPolicy` SPI for what happens when the deadline passes.
+That turned out to be Epic 4: adverse event escalation. Grade 3-4 events (serious, per ICH E6(R3)) require reporting within 24 hours. Grade 5 (death) gets an internal 1-hour SLA. Grade 1-2 carry a 7-day window. ClinicalAgent, the peer-reviewed baseline we're comparing against, has no deadline tracking at all. casehub-work has `claimDeadline` on `WorkItem` and an `EscalationPolicy` SPI for what happens when the deadline passes.
 
 The design work surfaced three things worth noting.
 

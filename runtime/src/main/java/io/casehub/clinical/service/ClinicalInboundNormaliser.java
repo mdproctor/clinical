@@ -17,7 +17,7 @@ public class ClinicalInboundNormaliser implements InboundNormaliser {
         MessageType type = isOversightChannel(channel.name())
             ? detectDecision(raw.content())
             : MessageType.QUERY;
-        return new NormalisedMessage(type, raw.content(), "human:" + raw.externalSenderId(),
+        return new NormalisedMessage(type, raw.content(), null, "human:" + raw.externalSenderId(),
             raw.correlationId(), null, null, null);
     }
 

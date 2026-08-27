@@ -78,7 +78,7 @@ public class AdverseEventService {
                                                                        .payload(payload(ae))
                                                                        .claimDeadline(ae.slaDeadline)
                                                                        .build());
-            ae.workItemId = workItem.id;
+            ae.workItemId = workItem.id();
         }
 
         ae.persist();

@@ -15,7 +15,7 @@ import io.casehub.clinical.api.model.AeOutcome;
 import io.casehub.clinical.api.model.EventActuality;
 import io.casehub.clinical.support.WorkItemCompletionCapture;
 import io.casehub.clinical.support.WorkItemQueries;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.casehub.work.engine.WorkItemLifecycleAdapter;
 import io.casehub.platform.api.identity.CurrentPrincipal;
@@ -73,10 +73,10 @@ class DsmbRollupTest {
         // Await: DSMB rollup WorkItem created by trial case binding
         await().atMost(5, SECONDS).pollInterval(100, MILLISECONDS)
                 .untilAsserted(() -> {
-                    List<WorkItemEntity> items = dsmbRollupWorkItems();
+                    List<WorkItem> items = dsmbRollupWorkItems();
                     assertThat(items).as("DSMB rollup WorkItem").isNotEmpty();
-                    assertThat(items.get(0).title).contains("DSMB review");
-                    assertThat(items.get(0).title).contains("multiple sites");
+                    assertThat(items.get(0).title()).contains("DSMB review");
+                    assertThat(items.get(0).title()).contains("multiple sites");
                 });
     }
 
@@ -101,10 +101,10 @@ class DsmbRollupTest {
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private List<WorkItemEntity> dsmbRollupWorkItems() {
+    private List<WorkItem> dsmbRollupWorkItems() {
         return workItemQueries.scanAll().stream()
-                .filter(wi -> wi.title != null && wi.title.contains("DSMB review")
-                        && wi.title.contains("multiple sites"))
+                .filter(wi -> wi.title() != null && wi.title().contains("DSMB review")
+                        && wi.title().contains("multiple sites"))
                 .toList();
     }
 

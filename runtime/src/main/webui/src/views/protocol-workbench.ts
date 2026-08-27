@@ -3,13 +3,14 @@ import {
   lookup,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
-import { deviationsDs, deviationPrecedentsDs, ledgerEntriesDs, TRIAL_ID, DEMO_MODE } from "../datasets.js";
+import type { DataSourceBinding } from "@casehubio/pages-data";
+import { getTrialId } from "../datasets.js";
 import { auditTrailStub } from "../stubs/audit-trail-viewer.js";
 
 export function protocolWorkbench(): Component {
   const deviationTable = dataTable({
     title: "Protocol Deviations",
-    lookup: lookup(deviationsDs.id),
+    lookup: lookup("deviations"),
     sortable: true,
     pageSize: 25,
     columns: [
@@ -33,9 +34,7 @@ export function protocolWorkbench(): Component {
       markdown("Select a protocol deviation from the list to view details."),
     )],
     ["PI Commitment", panel("PI Commitment Lifecycle",
-      html(`<commitment-lifecycle
-        endpoint="/api/trials/${TRIAL_ID}/deviations/{devId}/commitment"
-      ></commitment-lifecycle>`),
+      html('<commitment-lifecycle></commitment-lifecycle>'),
     )],
     ["IRB Review", panel("IRB Review",
       markdown("IRB committee review status."),
@@ -47,14 +46,10 @@ export function protocolWorkbench(): Component {
       ></approval-gate>`),
     )],
     ["Precedents", panel("Similar Past Deviations",
-      html(`<cbr-precedents-panel
-        endpoint="/api/trials/${TRIAL_ID}/deviations/dev-demo-001/precedents"
-        empty-message="No similar deviations found in case memory"
-        ${DEMO_MODE ? "demo" : ""}
-      ></cbr-precedents-panel>`),
+      html('<cbr-precedents-panel empty-message="No similar deviations found in case memory"></cbr-precedents-panel>'),
     )],
     ["Audit Trail", panel("Ledger Entries",
-      auditTrailStub(ledgerEntriesDs.id),
+      auditTrailStub("ledger-entries"),
     )],
   );
 
@@ -64,4 +59,4 @@ export function protocolWorkbench(): Component {
   );
 }
 
-export const protocolWorkbenchDatasets = [deviationsDs, deviationPrecedentsDs, ledgerEntriesDs];
+export const protocolWorkbenchDatasets: DataSourceBinding[] = [];

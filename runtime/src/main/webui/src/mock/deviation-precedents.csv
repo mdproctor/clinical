@@ -1,4 +1,0 @@
-precedentId,deviationId,deviationType,severity,similarity,piApproved,irbRequired,resolutionDays
-prec-dev-001,dev-demo-001,ELIGIBILITY_WAIVER,CRITICAL,0.95,true,true,7
-prec-dev-002,dev-demo-001,ELIGIBILITY_WAIVER,CRITICAL,0.89,true,true,5
-prec-dev-003,dev-demo-001,ELIGIBILITY_WAIVER,MAJOR,0.82,true,false,3

@@ -3,26 +3,23 @@ import {
   lookup, groupBy, filterBy, col, count, sum,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
-import {
-  trialSummaryDs, sitesDs, agentsDs, ledgerEntriesDs,
-  patientsDs, workItemsDs, TRIAL_ID,
-} from "../datasets.js";
+import type { DataSourceBinding } from "@casehubio/pages-data";
 
 export function operations(): Component {
   const trialDashboard = rows(
     columns([3, 3, 3, 3],
-      [metric({ title: "Trial Phase", lookup: lookup(trialSummaryDs.id, groupBy(null, col("phase"))) })],
-      [metric({ title: "Total Enrolled", lookup: lookup(trialSummaryDs.id, groupBy(null, col("totalEnrolled"))) })],
-      [metric({ title: "Adverse Events", lookup: lookup(trialSummaryDs.id, groupBy(null, col("totalAdverseEvents"))) })],
-      [metric({ title: "Protocol Deviations", lookup: lookup(trialSummaryDs.id, groupBy(null, col("totalDeviations"))) })],
+      [metric({ title: "Trial Phase", lookup: lookup("trial-summary", groupBy(null, col("phase"))) })],
+      [metric({ title: "Total Enrolled", lookup: lookup("trial-summary", groupBy(null, col("totalEnrolled"))) })],
+      [metric({ title: "Adverse Events", lookup: lookup("trial-summary", groupBy(null, col("totalAdverseEvents"))) })],
+      [metric({ title: "Protocol Deviations", lookup: lookup("trial-summary", groupBy(null, col("totalDeviations"))) })],
     ),
     barChart({
       title: "Enrollment by Site: Target vs Actual",
-      lookup: lookup(sitesDs.id, groupBy("siteName", col("siteName"), col("targetEnrollment"), col("enrolledCount"))),
+      lookup: lookup("sites", groupBy("siteName", col("siteName"), col("targetEnrollment"), col("enrolledCount"))),
     }),
     dataTable({
       title: "Recent Activity",
-      lookup: lookup(ledgerEntriesDs.id),
+      lookup: lookup("ledger-entries"),
       sortable: true,
       pageSize: 10,
       columns: [
@@ -37,7 +34,7 @@ export function operations(): Component {
   const trustGovernance = rows(
     dataTable({
       title: "Agent Trust Scores",
-      lookup: lookup(agentsDs.id),
+      lookup: lookup("agents"),
       sortable: true,
       pageSize: 25,
       columns: [
@@ -54,7 +51,7 @@ export function operations(): Component {
   const slaHealth = rows(
     pieChart({
       title: "Work Items by SLA Status",
-      lookup: lookup(workItemsDs.id, groupBy("slaStatus", col("slaStatus"), count("title"))),
+      lookup: lookup("work-items", groupBy("slaStatus", col("slaStatus"), count("title"))),
     }),
   );
 
@@ -78,6 +75,4 @@ export function operations(): Component {
   );
 }
 
-export const operationsDatasets = [
-  trialSummaryDs, sitesDs, agentsDs, ledgerEntriesDs, patientsDs, workItemsDs,
-];
+export const operationsDatasets: DataSourceBinding[] = [];

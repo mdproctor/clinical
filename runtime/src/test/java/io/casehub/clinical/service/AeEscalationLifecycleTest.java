@@ -17,8 +17,8 @@ import io.casehub.clinical.entity.AdverseEvent;
 import io.casehub.clinical.support.WorkItemCompletionCapture;
 import io.casehub.clinical.support.WorkItemQueries;
 import io.casehub.platform.testing.FixedCurrentPrincipal;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.casehub.work.engine.WorkItemLifecycleAdapter;
 import io.quarkus.test.junit.QuarkusTest;
@@ -76,23 +76,23 @@ class AeEscalationLifecycleTest {
         // Checkpoint: exactly one safety-review WorkItem, no dsmb WorkItem
         await().atMost(5, SECONDS).pollInterval(100, MILLISECONDS)
                 .untilAsserted(() -> {
-                    List<WorkItemEntity> items = aeWorkItems();
-                    assertThat(items.stream().anyMatch(wi -> wi.title.contains("Senior safety monitor")))
+                    List<WorkItem> items = aeWorkItems();
+                    assertThat(items.stream().anyMatch(wi -> wi.title().contains("Senior safety monitor")))
                             .as("safety-review WorkItem for Grade 3").isTrue();
-                    assertThat(items.stream().noneMatch(wi -> wi.title.contains("DSMB")))
+                    assertThat(items.stream().noneMatch(wi -> wi.title().contains("DSMB")))
                             .as("No DSMB WorkItem for Grade 3").isTrue();
                 });
 
-        WorkItemEntity safetyWorkItem = aeWorkItems().stream()
-                                                     .filter(wi -> wi.title.contains("Senior safety monitor"))
+        WorkItem safetyWorkItem = aeWorkItems().stream()
+                                                     .filter(wi -> wi.title().contains("Senior safety monitor"))
                                                      .findFirst().orElseThrow();
         String resolution = "{\"outcome\":\"REVIEWED\",\"reviewedAt\":\"2026-05-22T13:00:00Z\"}";
-        workItemService.completeFromSystem(safetyWorkItem.id, "senior-monitor", resolution);
+        workItemService.completeFromSystem(safetyWorkItem.id(), "senior-monitor", resolution);
 
         // Re-fetch after completion so the WorkItem has the updated resolution and status
-        WorkItemEntity completed = aeWorkItems().get(0);
+        WorkItem completed = aeWorkItems().get(0);
         lifecycleAdapter.onWorkItemLifecycle(
-                WorkItemLifecycleEvent.of("COMPLETED", completed, "senior-monitor", completed.resolution));
+                WorkItemLifecycleEvent.of("COMPLETED", completed, "senior-monitor", completed.resolution()));
 
         // Phase 3 persists the engine case ID — verify after case start completes
         assertThat(findAe(aeId).engineCaseId).isNotNull();
@@ -119,31 +119,31 @@ class AeEscalationLifecycleTest {
         // Checkpoint: two WorkItems (safety-review + dsmb-escalation)
         await().atMost(5, SECONDS).pollInterval(100, MILLISECONDS)
                 .untilAsserted(() -> {
-                    List<WorkItemEntity> items = aeWorkItems();
+                    List<WorkItem> items = aeWorkItems();
                     assertThat(items).as("Two WorkItems for Grade 4").hasSizeGreaterThanOrEqualTo(2);
                 });
 
-        List<WorkItemEntity> allItems = aeWorkItems();
-        WorkItemEntity safetyItem = allItems.stream()
-                                            .filter(wi -> wi.title.contains("Senior")).findFirst().orElseThrow();
-        WorkItemEntity dsmbItem = allItems.stream()
-                                          .filter(wi -> wi.title.contains("DSMB")).findFirst().orElseThrow();
+        List<WorkItem> allItems = aeWorkItems();
+        WorkItem safetyItem = allItems.stream()
+                                            .filter(wi -> wi.title().contains("Senior")).findFirst().orElseThrow();
+        WorkItem dsmbItem = allItems.stream()
+                                          .filter(wi -> wi.title().contains("DSMB")).findFirst().orElseThrow();
 
         String resolution = "{\"outcome\":\"REVIEWED\",\"reviewedAt\":\"2026-05-22T13:00:00Z\"}";
-        workItemService.completeFromSystem(safetyItem.id, "senior-monitor", resolution);
-        workItemService.completeFromSystem(dsmbItem.id, "dsmb-chair", resolution);
+        workItemService.completeFromSystem(safetyItem.id(), "senior-monitor", resolution);
+        workItemService.completeFromSystem(dsmbItem.id(), "dsmb-chair", resolution);
 
         // Re-fetch after completion so WorkItems have updated resolution and status
-        List<WorkItemEntity> completedItems = aeWorkItems();
-        WorkItemEntity completedSafety = completedItems.stream()
-                                                       .filter(wi -> wi.title.contains("Senior")).findFirst().orElseThrow();
-        WorkItemEntity completedDsmb = completedItems.stream()
-                                                     .filter(wi -> wi.title.contains("DSMB")).findFirst().orElseThrow();
+        List<WorkItem> completedItems = aeWorkItems();
+        WorkItem completedSafety = completedItems.stream()
+                                                       .filter(wi -> wi.title().contains("Senior")).findFirst().orElseThrow();
+        WorkItem completedDsmb = completedItems.stream()
+                                                     .filter(wi -> wi.title().contains("DSMB")).findFirst().orElseThrow();
 
         lifecycleAdapter.onWorkItemLifecycle(
-                WorkItemLifecycleEvent.of("COMPLETED", completedSafety, "senior-monitor", completedSafety.resolution));
+                WorkItemLifecycleEvent.of("COMPLETED", completedSafety, "senior-monitor", completedSafety.resolution()));
         lifecycleAdapter.onWorkItemLifecycle(
-                WorkItemLifecycleEvent.of("COMPLETED", completedDsmb, "dsmb-chair", completedDsmb.resolution));
+                WorkItemLifecycleEvent.of("COMPLETED", completedDsmb, "dsmb-chair", completedDsmb.resolution()));
 
         // Phase 3 persists the engine case ID — verify after case start completes
         assertThat(findAe(aeId).engineCaseId).isNotNull();
@@ -160,9 +160,9 @@ class AeEscalationLifecycleTest {
         return new AdverseEventReportedEvent(aeId, enrollmentId, siteId, grade, Instant.now(), principal.tenancyId());
     }
 
-    private List<WorkItemEntity> aeWorkItems() {
+    private List<WorkItem> aeWorkItems() {
         return workItemQueries.scanAll().stream()
-                .filter(wi -> wi.payload != null && wi.payload.contains(aeId.toString()))
+                .filter(wi -> wi.payload() != null && wi.payload().contains(aeId.toString()))
                 .toList();
     }
 

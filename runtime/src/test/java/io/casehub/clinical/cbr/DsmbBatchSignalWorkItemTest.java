@@ -13,7 +13,7 @@ import io.casehub.clinical.entity.TrialSafetySignal;
 import io.casehub.clinical.entity.TrialSite;
 import io.casehub.clinical.support.WorkItemQueries;
 import io.casehub.platform.api.identity.CurrentPrincipal;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -52,11 +52,11 @@ class DsmbBatchSignalWorkItemTest {
         assertThat(signal).as("Signal record created").isNotNull();
         assertThat(signal.workItemId).as("WorkItem ID set on signal").isNotNull();
 
-        List<WorkItemEntity> items = dsmbBatchWorkItems();
+        List<WorkItem> items = dsmbBatchWorkItems();
         assertThat(items).as("Exactly one DSMB batch WorkItem").hasSize(1);
-        assertThat(items.get(0).title).contains("DSMB review");
-        assertThat(items.get(0).title).contains("GRADE_THRESHOLD");
-        assertThat(items.get(0).callerRef).contains("clinical:trial-safety-signal/");
+        assertThat(items.get(0).title()).contains("DSMB review");
+        assertThat(items.get(0).title()).contains("GRADE_THRESHOLD");
+        assertThat(items.get(0).callerRef()).contains("clinical:trial-safety-signal/");
     }
 
     @Test
@@ -146,13 +146,13 @@ class DsmbBatchSignalWorkItemTest {
         return TrialSafetySignal.findByTrialAndType(trialId, signalType, "default");
     }
 
-    List<WorkItemEntity> dsmbBatchWorkItems() {
+    List<WorkItem> dsmbBatchWorkItems() {
         TrialSafetySignal signal = TrialSafetySignal.findByTrialAndType(trialId, "GRADE_THRESHOLD", "default");
         if (signal == null) return List.of();
         String expectedCallerRef = "clinical:trial-safety-signal/" + signal.id;
         return workItemQueries.scanAll().stream()
-            .filter(wi -> expectedCallerRef.equals(wi.callerRef))
-            .filter(wi -> !wi.status.isTerminal())
+            .filter(wi -> expectedCallerRef.equals(wi.callerRef()))
+            .filter(wi -> !wi.status().isTerminal())
             .toList();
     }
 

@@ -1,6 +1,6 @@
 package io.casehub.clinical.support;
 
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.spi.WorkItemStore;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -17,7 +17,7 @@ public class WorkItemQueries {
     @Inject WorkItemStore store;
 
     @Transactional
-    public List<WorkItemEntity> scanAll() {
+    public List<WorkItem> scanAll() {
         return store.scanAll();
     }
 }

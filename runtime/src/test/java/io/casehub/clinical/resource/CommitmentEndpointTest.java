@@ -10,20 +10,29 @@ import io.casehub.clinical.entity.ClinicalTrial;
 import io.casehub.clinical.entity.ProtocolDeviation;
 import io.casehub.clinical.entity.TrialSite;
 import io.casehub.platform.testing.FixedCurrentPrincipal;
+import io.casehub.qhorus.api.message.Commitment;
+import io.casehub.qhorus.api.message.CommitmentState;
+import io.casehub.qhorus.api.store.CommitmentReader;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @TestSecurity(user = "test-actor", roles = { ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR, ClinicalGroups.COORDINATOR })
 public class CommitmentEndpointTest {
 
     @Inject FixedCurrentPrincipal principal;
+    @InjectMock CommitmentReader commitmentReader;
 
     private UUID trialId;
     private UUID deviationId;
@@ -59,6 +68,19 @@ public class CommitmentEndpointTest {
         dev.commandedAt = Instant.now();
         dev.tenantId = principal.tenancyId();
         dev.persist();
+
+        Commitment commitment = Commitment.builder()
+                .id(UUID.randomUUID())
+                .correlationId(deviationId.toString())
+                .channelId(UUID.randomUUID())
+                .messageType(io.casehub.qhorus.api.message.MessageType.COMMAND)
+                .requester("clinical-service")
+                .obligor("pi-test")
+                .state(CommitmentState.OPEN)
+                .tenancyId(principal.tenancyId())
+                .createdAt(Instant.now())
+                .build();
+        when(commitmentReader.findByCorrelationId(deviationId.toString())).thenReturn(Optional.of(commitment));
     }
 
     @Test
@@ -77,12 +99,10 @@ public class CommitmentEndpointTest {
                 trialId, deviationId)
             .then()
             .statusCode(200)
-            .body("deviationId", is(deviationId.toString()))
-            .body("deviationType", is("DOSING_ERROR"))
-            .body("severity", is("CRITICAL"))
-            .body("piApprovalStatus", is("PENDING"))
-            .body("channelName", is("clinical/deviation/dev-test-123/pi-oversight"))
-            .body("commandedAt", notNullValue());
+            .body("id", notNullValue())
+            .body("currentStage", is("COMMANDED"))
+            .body("stages", notNullValue())
+            .body("stages.size()", is(4));
     }
 
     @Test

@@ -1,6 +1,0 @@
-grade,eventType,patientId,siteName,slaTimeRemainingHours,escalationStatus,regulatorySubmissionStatus
-GRADE_4,HEPATOTOXICITY,pat-001,Memorial Cancer Center,18.5,COMPLETED,FILED
-GRADE_2,NAUSEA,pat-002,Memorial Cancer Center,150.0,REPORTED,
-GRADE_4,NEUTROPENIA,pat-003,Johns Hopkins Oncology,-2.5,ESCALATED,PENDING
-GRADE_3,THROMBOCYTOPENIA,pat-004,Memorial Cancer Center,6.0,REQUESTED,
-GRADE_1,FATIGUE,pat-005,Mayo Clinic Research,168.0,REPORTED,

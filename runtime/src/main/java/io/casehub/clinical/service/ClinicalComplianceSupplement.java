@@ -150,5 +150,13 @@ public final class ClinicalComplianceSupplement {
         return s;
     }
 
+    public static ComplianceSupplement dataCapture() {
+        ComplianceSupplement s = new JpaComplianceSupplement();
+        s.planRef                = "ICH E6(R3) §5.18 — clinical data capture audit trail";
+        s.algorithmRef           = "ClinicalDataCaptureService (direct data entry by clinical staff)";
+        s.humanOverrideAvailable = true;
+        return s;
+    }
+
 
 }

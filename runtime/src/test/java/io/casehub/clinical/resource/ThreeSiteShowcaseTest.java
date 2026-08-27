@@ -127,19 +127,19 @@ class ThreeSiteShowcaseTest {
         String enrollmentAStr = enrollmentA.toString();
         await().atMost(15, SECONDS).untilAsserted(() ->
             assertThat(workItemQueries.scanAll().stream()
-                .anyMatch(wi -> wi.candidateGroups != null
-                    && "irb-committee".equals(wi.candidateGroups.trim())
-                    && wi.payload != null && wi.payload.contains(enrollmentAStr)))
+                .anyMatch(wi -> wi.candidateGroups() != null
+                    && "irb-committee".equals(wi.candidateGroups().trim())
+                    && wi.payload() != null && wi.payload().contains(enrollmentAStr)))
             .isTrue()
         );
 
         workItemQueries.scanAll().stream()
-            .filter(wi -> wi.candidateGroups != null && "irb-committee".equals(wi.candidateGroups.trim())
-                && wi.payload != null && wi.payload.contains(enrollmentAStr))
+            .filter(wi -> wi.candidateGroups() != null && "irb-committee".equals(wi.candidateGroups().trim())
+                && wi.payload() != null && wi.payload().contains(enrollmentAStr))
             .findFirst()
             .ifPresent(wi -> {
-                assertThat(wi.expiresAt).as("IRB consultation WorkItem must have an expiry (PT72H)").isNotNull();
-                assertThat(Duration.between(Instant.now(), wi.expiresAt).toHours())
+                assertThat(wi.expiresAt()).as("IRB consultation WorkItem must have an expiry (PT72H)").isNotNull();
+                assertThat(Duration.between(Instant.now(), wi.expiresAt()).toHours())
                     .isLessThanOrEqualTo(73L);
             });
 

@@ -12,7 +12,7 @@ import io.casehub.qhorus.api.gateway.InboundHumanMessage;
 import io.casehub.qhorus.api.channel.Channel;
 import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.qhorus.runtime.gateway.ChannelGateway;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.spi.WorkItemStore;
 import io.casehub.work.runtime.service.WorkItemService;
 import jakarta.ws.rs.core.Response;
@@ -138,22 +138,23 @@ class DemoActionResourceTest {
             UUID caseId = UUID.randomUUID();
             String callerRef = "case:" + caseId + "/gate:1";
 
-            WorkItemEntity gateItem = new WorkItemEntity();
-            gateItem.id = UUID.randomUUID();
-            gateItem.callerRef = callerRef;
+            WorkItem gateItem = WorkItem.builder()
+                    .id(UUID.randomUUID())
+                    .callerRef(callerRef)
+                    .build();
 
-            WorkItemEntity otherItem = new WorkItemEntity();
-            otherItem.id = UUID.randomUUID();
-            otherItem.callerRef = "case:" + UUID.randomUUID() + "/gate:2";
+            WorkItem otherItem = WorkItem.builder()
+                    .id(UUID.randomUUID())
+                    .callerRef("case:" + UUID.randomUUID() + "/gate:2")
+                    .build();
 
             when(workItemStore.scanAll()).thenReturn(List.of(gateItem, otherItem));
 
-            // Verify the filter logic matches the callerRef pattern
             var match = List.of(gateItem, otherItem).stream()
-                    .filter(wi -> wi.callerRef != null && wi.callerRef.contains("case:" + caseId))
+                    .filter(wi -> wi.callerRef() != null && wi.callerRef().contains("case:" + caseId))
                     .findFirst();
             assertThat(match).isPresent();
-            assertThat(match.get().id).isEqualTo(gateItem.id);
+            assertThat(match.get().id()).isEqualTo(gateItem.id());
         }
 
         @Test

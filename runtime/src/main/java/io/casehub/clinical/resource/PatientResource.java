@@ -80,6 +80,29 @@ public class PatientResource {
                                     Instant changedAt, String changedBy, String reason) {}
 
 
+    @GET
+    @RolesAllowed({ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR,
+                   ClinicalGroups.COORDINATOR, ClinicalGroups.MONITOR})
+    public List<PatientEnrollment> listForSite(@PathParam("trialId") UUID trialId,
+                                               @PathParam("siteId") UUID siteId) {
+        TrialSite site = TrialSite.findByIdForTenant(siteId, principal);
+        if (site == null || !site.trialId.equals(trialId)) {return List.of();}
+        return PatientEnrollment.list("siteId = ?1 and tenantId = ?2", siteId, site.tenantId);
+    }
+
+    @GET
+    @Path("/{enrollmentId}/adverse-events")
+    @RolesAllowed({ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR,
+                   ClinicalGroups.COORDINATOR, ClinicalGroups.MONITOR})
+    public List<AdverseEvent> listAdverseEvents(@PathParam("trialId") UUID trialId,
+                                                @PathParam("siteId") UUID siteId,
+                                                @PathParam("enrollmentId") UUID enrollmentId) {
+        PatientEnrollment enrollment = PatientEnrollment.findByIdForTenant(enrollmentId, principal);
+        if (enrollment == null || !enrollment.siteId.equals(siteId)) {return List.of();}
+        return AdverseEvent.list("enrollmentId = ?1 and tenantId = ?2", enrollmentId, enrollment.tenantId);
+    }
+
+
     @POST
     @Transactional
     @RolesAllowed({ClinicalGroups.INVESTIGATOR, ClinicalGroups.COORDINATOR})

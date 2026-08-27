@@ -461,6 +461,20 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **CBR `eventType` field is `categoricalList` not `categorical`:** `ClinicalCbrSchemaInitializer` registers `eventType` as `FeatureField.categoricalList("eventType")`. Feature builders (`AeCbrFeatureBuilder`, `DemoDataSeeder.seedTrajectoryCase`) must store it as `List.of(value)`, not plain `String`. `AeTrajectoryAlertService` and `TrialDashboardResource` query with `CbrFilter.contains()` which requires `CategoricalList`. (GE-20260721-621a64)
 
+**`WorkItem` is now a Java record in `io.casehub.work.api` (SNAPSHOT update):** Fields are accessed via record accessors (`id()`, `callerRef()`, `status()`, `payload()`, `resolution()`, etc.) not field access (`.id`, `.callerRef`). `WorkItemEntity` (JPA entity) remains in `io.casehub.work.runtime.model` for direct persistence. `WorkItemStore.scanAll()` returns `List<WorkItem>` (API records). `WorkItemLifecycleEvent` moved from `io.casehub.work.runtime.event` to `io.casehub.work.api`. Tests construct `WorkItem.builder().id(uuid).status(status).build()` instead of `new WorkItemEntity()`.
+
+**`NormalisedMessage` gained `payload` field at position 3 (SNAPSHOT update):** Constructor is now `(MessageType, String content, String payload, String senderInstanceId, String correlationId, Long inReplyTo, List<ArtefactRef> artefactRefs, String target)`. Callers that previously passed `(type, content, senderInstanceId, correlationId, null, null, null)` must insert `null` for `payload` at position 3.
+
+**`ChannelResource` CDI exclusion required:** `ChannelResource` (qhorus runtime) injects `QhorusDashboardService`. Excluding `QhorusDashboardService` alone is insufficient — `ChannelResource` must also be excluded. Full chain: both in `quarkus.arc.exclude-types`.
+
+**`CallbackRegistry` CDI exclusion:** Platform SNAPSHOT added callback infrastructure (`LeaseReaper`, `CallbackRegistrationResource`, `CallbackActionRiskClassifier`, `CallbackWorkerProvisionerDecorator`). Clinical doesn't use callbacks — all four excluded in test `application.properties`.
+
+**`QuartzRetryService` + `QuartzWorkerExecutionJob` CDI exclusion:** Engine SNAPSHOT added `RecoveryCoordinator` SPI. `QuartzRetryService` injects it; `QuartzWorkerExecutionJob` injects `QuartzRetryService`. Both excluded in test `application.properties`.
+
+**`casehub.signal.api-url` and `casehub.signal.number` test config:** Engine SNAPSHOT added required signal config properties. Set to placeholder values in test `application.properties` (`http://localhost:8080` and `+10000000000`).
+
+**H2 reserved-word columns:** `value` and `type` are H2 reserved words. Entity fields mapped to `result_value` and `vital_type` column names via `@Column(name = ...)`. Flyway migrations use the renamed columns. (GE-20260827-d5a3cf)
+
 **Engine CDI wiring (Layer 5+):** When adding `casehub-engine` to the classpath, also add `casehub-platform` and `casehub-platform-expression` — without them, engine beans (`JQEvaluator`, event handlers) cannot resolve their injection points and CDI startup fails.
 
 ```xml

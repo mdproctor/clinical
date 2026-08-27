@@ -11,8 +11,8 @@ import io.casehub.clinical.api.model.CtcaeGrade;
 import io.casehub.clinical.api.model.EventActuality;
 import io.casehub.clinical.api.model.RegulatorySubmissionStatus;
 import io.casehub.clinical.entity.AdverseEvent;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.engine.PlanItemCallerRef;
 import io.quarkus.test.InjectMock;
@@ -88,8 +88,8 @@ class RegulatorySubmissionBreachListenerTest {
 
         // WorkItemLifecycleEvent.of() copies workItem.status into event.status() —
         // must set the workItem status to COMPLETED, not ESCALATED.
-        WorkItemEntity wi = workItem(PlanItemCallerRef.encode(caseId, UUID.randomUUID().toString()));
-        wi.status = WorkItemStatus.COMPLETED;
+        WorkItem wi = workItem(PlanItemCallerRef.encode(caseId, UUID.randomUUID().toString()))
+                .toBuilder().status(WorkItemStatus.COMPLETED).build();
         WorkItemLifecycleEvent event = WorkItemLifecycleEvent.of("COMPLETED", wi, "system", null);
         listener.onWorkItemLifecycle(event);
 
@@ -139,12 +139,12 @@ class RegulatorySubmissionBreachListenerTest {
         return WorkItemLifecycleEvent.of("ESCALATED", workItem(callerRef), "system", null);
     }
 
-    private WorkItemEntity workItem(String callerRef) {
-        WorkItemEntity wi = new WorkItemEntity();
-        wi.id = UUID.randomUUID();
-        wi.callerRef = callerRef;
-        wi.status = WorkItemStatus.ESCALATED;
-        wi.tenancyId = "test-tenant";
-        return wi;
+    private WorkItem workItem(String callerRef) {
+        return WorkItem.builder()
+                .id(UUID.randomUUID())
+                .callerRef(callerRef)
+                .status(WorkItemStatus.ESCALATED)
+                .tenancyId("test-tenant")
+                .build();
     }
 }

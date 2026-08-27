@@ -6,8 +6,8 @@ import io.casehub.clinical.api.IrbApprovalResolvedEvent;
 import io.casehub.clinical.api.model.IrbDecision;
 import io.casehub.clinical.entity.IrbApproval;
 import io.casehub.clinical.memory.ClinicalMemoryService;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.engine.CallerRef;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,18 +44,18 @@ public class IrbDecisionListener {
 
     @Transactional
     public void onWorkItemLifecycle(@ObservesAsync WorkItemLifecycleEvent event) {
-        WorkItemEntity workItem = event.workItem();
+        WorkItem workItem = event.workItem();
         if (workItem == null) return;
 
         UUID deviationId = extractDeviationId(workItem);
         if (deviationId == null) {
-            LOG.tracef("WorkItem %s has no deviationId — not an IRB item, skipping", workItem.id);
+            LOG.tracef("WorkItem %s has no deviationId — not an IRB item, skipping", workItem.id());
             return;
         }
 
         IrbDecision decision = resolveDecision(event.status(), workItem);
         if (decision == null) {
-            LOG.tracef("WorkItem %s status=%s is non-terminal for IRB processing — skipping", workItem.id, event.status());
+            LOG.tracef("WorkItem %s status=%s is non-terminal for IRB processing — skipping", workItem.id(), event.status());
             return;
         }
 
@@ -76,7 +76,7 @@ public class IrbDecisionListener {
             approval.persist();
 
             if (event.status() == WorkItemStatus.EXPIRED) {
-                CallerRef ref = CallerRef.parse(workItem.callerRef);
+                CallerRef ref = CallerRef.parse(workItem.callerRef());
                 if (ref != null) {
                     caseHub.signal(ref.caseId(), "irbConsultation", Map.of(
                             "decision", "EXPIRED",
@@ -106,10 +106,10 @@ public class IrbDecisionListener {
         }
     }
 
-    private UUID extractDeviationId(WorkItemEntity workItem) {
-        if (workItem.payload == null) return null;
+    private UUID extractDeviationId(WorkItem workItem) {
+        if (workItem.payload() == null) return null;
         try {
-            JsonNode node = objectMapper.readTree(workItem.payload);
+            JsonNode node = objectMapper.readTree(workItem.payload());
             JsonNode idNode = node.get("deviationId");
             if (idNode == null || idNode.isNull()) return null;
             return UUID.fromString(idNode.asText());
@@ -118,9 +118,9 @@ public class IrbDecisionListener {
         }
     }
 
-    private IrbDecision resolveDecision(WorkItemStatus status, WorkItemEntity workItem) {
+    private IrbDecision resolveDecision(WorkItemStatus status, WorkItem workItem) {
         return switch (status) {
-            case COMPLETED -> parseDecisionFromResolution(workItem.resolution);
+            case COMPLETED -> parseDecisionFromResolution(workItem.resolution());
             case EXPIRED   -> IrbDecision.EXPIRED;
             default        -> null;
         };

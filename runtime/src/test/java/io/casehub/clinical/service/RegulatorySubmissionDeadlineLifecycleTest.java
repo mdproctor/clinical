@@ -65,17 +65,17 @@ class RegulatorySubmissionDeadlineLifecycleTest {
         Instant expectedExpiry = Instant.parse("2026-07-16T10:00:00Z"); // reportedAt + 15 days
         await().atMost(10, SECONDS).pollInterval(100, MILLISECONDS).untilAsserted(() -> {
             var workItem = workItemQueries.scanAll().stream()
-                    .filter(wi -> wi.candidateGroups != null
-                            && wi.candidateGroups.contains("regulatory-affairs")
-                            && wi.callerRef != null
-                            && wi.callerRef.contains("case:" + caseId))
+                    .filter(wi -> wi.candidateGroups() != null
+                            && wi.candidateGroups().contains("regulatory-affairs")
+                            && wi.callerRef() != null
+                            && wi.callerRef().contains("case:" + caseId))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
                             "No regulatory-affairs WorkItem found yet for case " + caseId));
-            assertThat(workItem.expiresAt)
+            assertThat(workItem.expiresAt())
                     .as("WorkItem.expiresAt must equal reportedAt + 15 days (21 CFR 312.32(c)(1)(ii))")
                     .isEqualTo(expectedExpiry);
-            assertThat(workItem.status).isEqualTo(WorkItemStatus.PENDING);
+            assertThat(workItem.status()).isEqualTo(WorkItemStatus.PENDING);
         });
     }
 
@@ -95,17 +95,17 @@ class RegulatorySubmissionDeadlineLifecycleTest {
         Instant expectedExpiry = Instant.parse("2026-07-09T10:00:00Z"); // reportedAt + 7 days
         await().atMost(10, SECONDS).pollInterval(100, MILLISECONDS).untilAsserted(() -> {
             var workItem = workItemQueries.scanAll().stream()
-                    .filter(wi -> wi.candidateGroups != null
-                            && wi.candidateGroups.contains("regulatory-affairs")
-                            && wi.callerRef != null
-                            && wi.callerRef.contains("case:" + caseId))
+                    .filter(wi -> wi.candidateGroups() != null
+                            && wi.candidateGroups().contains("regulatory-affairs")
+                            && wi.callerRef() != null
+                            && wi.callerRef().contains("case:" + caseId))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
                             "No regulatory-affairs WorkItem found yet for case " + caseId));
-            assertThat(workItem.expiresAt)
+            assertThat(workItem.expiresAt())
                     .as("WorkItem.expiresAt must equal reportedAt + 7 days (21 CFR 312.32(c)(1)(i))")
                     .isEqualTo(expectedExpiry);
-            assertThat(workItem.status).isEqualTo(WorkItemStatus.PENDING);
+            assertThat(workItem.status()).isEqualTo(WorkItemStatus.PENDING);
         });
     }
 

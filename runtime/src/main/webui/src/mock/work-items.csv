@@ -1,6 +1,0 @@
-title,status,priority,category,slaStatus
-Review SUSAR ae-003,CLAIMED,HIGH,adverse-event,approaching
-Approve deviation dev-002,UNCLAIMED,MEDIUM,deviation-review,healthy
-IRB review for dev-004,UNCLAIMED,HIGH,deviation-review,approaching
-IND filing deadline ae-001,CLAIMED,URGENT,adverse-event,overdue
-PI authorisation dev-005,UNCLAIMED,MEDIUM,deviation-review,healthy

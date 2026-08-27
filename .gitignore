@@ -7,6 +7,9 @@ target/
 node_modules/
 package-lock.json
 dist/
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/
 
 # IDE
 META-INF/

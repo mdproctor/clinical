@@ -1,104 +1,49 @@
-import { bind } from "@casehubio/pages-ui";
-import { csvSource } from "@casehubio/pages-data";
+import { bind, restSource } from "@casehubio/pages-ui";
+import { mutableRestSource } from "@casehubio/pages-data";
 import type { DataSourceBinding } from "@casehubio/pages-data";
 import type { DataSetId } from "@casehubio/pages-data";
 
-import adverseEventsCsv from "./mock/adverse-events.csv?raw";
-import deviationsCsv from "./mock/deviations.csv?raw";
-import trialSummaryCsv from "./mock/trial-summary.csv?raw";
-import sitesCsv from "./mock/sites.csv?raw";
-import agentsCsv from "./mock/agents.csv?raw";
-import ledgerEntriesCsv from "./mock/ledger-entries.csv?raw";
-import patientsCsv from "./mock/patients.csv?raw";
-import aePrecedentsCsv from "./mock/ae-precedents.csv?raw";
-import deviationPrecedentsCsv from "./mock/deviation-precedents.csv?raw";
-import workItemsCsv from "./mock/work-items.csv?raw";
+let currentTrialId: string | null = null;
 
-export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+export function setTrialId(id: string) { currentTrialId = id; }
+export function getTrialId(): string | null { return currentTrialId; }
 
-const DEMO_TRIAL_ID = "316e3846-4ea7-3b18-a6f7-e01ce6582a69";
-
-export const TRIAL_ID = DEMO_MODE
-  ? DEMO_TRIAL_ID
-  : import.meta.env.VITE_TRIAL_ID || DEMO_TRIAL_ID;
-
-export function dualDataset(
-  id: string,
-  endpoint: string,
-  mockCsv: string,
-): DataSourceBinding {
-  if (DEMO_MODE) {
-    return bind(id, csvSource(mockCsv));
-  }
-  return {
-    id: id as DataSetId,
-    source: { connect() {}, disconnect() {} },
-    url: endpoint,
-  } as DataSourceBinding;
+export function restDataset(id: string, url: string): DataSourceBinding {
+  return bind(id, restSource(url));
 }
 
-export const adverseEventsDs = dualDataset(
-  "adverse-events",
-  `/api/trials/${TRIAL_ID}/adverse-events`,
-  adverseEventsCsv,
-);
+export function mutableDataset(id: string, readUrl: string, createUrl: string, keyColumn = "id"): DataSourceBinding {
+  return bind(id, mutableRestSource(readUrl, {
+    create: { url: createUrl, method: "POST" },
+    keyColumn,
+    refreshAfterWrite: true,
+  }), { keyColumn });
+}
 
-export const deviationsDs = dualDataset(
-  "deviations",
-  `/api/trials/${TRIAL_ID}/deviations`,
-  deviationsCsv,
-);
+export const trialsDs = mutableDataset("trials", "/api/trials", "/api/trials");
 
-export const trialSummaryDs = dualDataset(
-  "trial-summary",
-  `/api/trials/${TRIAL_ID}/summary`,
-  trialSummaryCsv,
-);
+export function trialDatasets(trialId: string): DataSourceBinding[] {
+  return [
+    restDataset("trial-summary", `/api/trials/${trialId}/summary`),
+    mutableDataset("sites", `/api/trials/${trialId}/sites`, `/api/trials/${trialId}/sites`),
+    restDataset("patients", `/api/trials/${trialId}/patients`),
+    restDataset("adverse-events", `/api/trials/${trialId}/adverse-events`),
+    restDataset("deviations", `/api/trials/${trialId}/deviations`),
+    mutableDataset("amendments", `/api/trials/${trialId}/amendments`, `/api/trials/${trialId}/amendments`),
+    restDataset("agents", `/api/trials/${trialId}/agents`),
+    restDataset("ledger-entries", `/api/trials/${trialId}/ledger-entries`),
+    restDataset("work-items", "/api/workitems?candidateGroups=clinical"),
+  ];
+}
 
-export const sitesDs = dualDataset(
-  "sites",
-  `/api/trials/${TRIAL_ID}/sites`,
-  sitesCsv,
-);
-
-export const agentsDs = dualDataset(
-  "agents",
-  `/api/trials/${TRIAL_ID}/agents`,
-  agentsCsv,
-);
-
-export const ledgerEntriesDs = dualDataset(
-  "ledger-entries",
-  `/api/trials/${TRIAL_ID}/ledger-entries`,
-  ledgerEntriesCsv,
-);
-
-export const patientsDs = dualDataset(
-  "patients",
-  `/api/trials/${TRIAL_ID}/patients`,
-  patientsCsv,
-);
-
-export const workItemsDs = dualDataset(
-  "work-items",
-  `/api/workitems?candidateGroups=clinical`,
-  workItemsCsv,
-);
-
-export const aePrecedentsDs = dualDataset(
-  "ae-precedents",
-  `/api/trials/${TRIAL_ID}/adverse-events/ae-demo-001/precedents`,
-  aePrecedentsCsv,
-);
-
-export const deviationPrecedentsDs = dualDataset(
-  "deviation-precedents",
-  `/api/trials/${TRIAL_ID}/deviations/dev-demo-001/precedents`,
-  deviationPrecedentsCsv,
-);
-
-export const allDatasets = [
-  adverseEventsDs, deviationsDs, trialSummaryDs, sitesDs,
-  agentsDs, ledgerEntriesDs, patientsDs, workItemsDs,
-  aePrecedentsDs, deviationPrecedentsDs,
-];
+export function patientDatasets(trialId: string, siteId: string, enrollmentId: string): DataSourceBinding[] {
+  const base = `/api/trials/${trialId}/sites/${siteId}/patients/${enrollmentId}`;
+  return [
+    mutableDataset("patient-visits", `${base}/visits`, `${base}/visits`),
+    mutableDataset("patient-lab-results", `${base}/lab-results`, `${base}/lab-results`),
+    mutableDataset("patient-vitals", `${base}/vitals`, `${base}/vitals`),
+    mutableDataset("patient-medications", `${base}/medications`, `${base}/medications`),
+    mutableDataset("patient-study-drug", `${base}/study-drug`, `${base}/study-drug`),
+    mutableDataset("patient-adverse-events", `${base}/adverse-events`, `${base}/adverse-events`),
+  ];
+}

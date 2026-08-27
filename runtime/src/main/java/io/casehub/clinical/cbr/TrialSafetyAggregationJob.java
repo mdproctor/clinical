@@ -305,8 +305,8 @@ public class TrialSafetyAggregationJob {
                         .expiresAt(clock.instant().plus(batchSignalExpiry))
                         .build());
                     TrialSafetySignal sig = TrialSafetySignal.findById(result.signalId());
-                    if (sig != null) sig.workItemId = wi.id;
-                    return wi.id;
+                    if (sig != null) sig.workItemId = wi.id();
+                    return wi.id();
                 });
                 dsmbNotifier.notify(trialId, signal.signalType(), signal.summary(),
                     signal.affectedSites().size(), workItemId);
@@ -320,7 +320,7 @@ public class TrialSafetyAggregationJob {
     private boolean needsWorkItem(UUID existingWorkItemId) {
         if (existingWorkItemId == null) return true;
         return workItemStore.get(existingWorkItemId)
-            .map(wi -> wi.status.isTerminal())
+            .map(wi -> wi.status().isTerminal())
             .orElse(true);
     }
 

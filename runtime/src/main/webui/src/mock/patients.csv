@@ -1,6 +1,0 @@
-patientId,siteId,enrollmentStatus,screeningResult,consentStatus
-pat-001,site-a,ENROLLED,ELIGIBLE,ACTIVE
-pat-002,site-a,ENROLLED,ELIGIBLE,ACTIVE
-pat-003,site-b,ENROLLED,ELIGIBLE,ACTIVE
-pat-004,site-a,ENROLLED,ELIGIBLE,ACTIVE
-pat-005,site-c,ENROLLED,ELIGIBLE,ACTIVE

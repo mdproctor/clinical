@@ -17,6 +17,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @Path("/trials")
@@ -40,6 +41,20 @@ public class TrialResource {
         @Size(max = 64) String sponsorNotificationConnectorId,
         @Size(max = 2048) String sponsorNotificationDestination
     ) {}
+
+    public record TrialListRow(UUID id, String protocolId, TrialPhase phase, String sponsor,
+                               TrialStatus status, int targetEnrollment) {}
+
+    @GET
+    @RolesAllowed({ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR,
+                   ClinicalGroups.COORDINATOR, ClinicalGroups.MONITOR})
+    public List<TrialListRow> list() {
+        List<ClinicalTrial> trials = ClinicalTrial.list("tenantId", principal.tenancyId());
+        return trials.stream().map(t -> new TrialListRow(
+                t.id, t.protocolId, t.phase, t.sponsor, t.status, t.targetEnrollment
+        )).toList();
+    }
+
 
     @POST
     @Transactional

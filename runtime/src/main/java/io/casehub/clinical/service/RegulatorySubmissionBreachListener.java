@@ -2,8 +2,8 @@ package io.casehub.clinical.service;
 
 import io.casehub.clinical.api.model.RegulatorySubmissionStatus;
 import io.casehub.clinical.entity.AdverseEvent;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.engine.CallerRef;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -36,11 +36,11 @@ public class RegulatorySubmissionBreachListener {
         if (event.status() != WorkItemStatus.ESCALATED) {
             return;
         }
-        WorkItemEntity workItem = event.workItem();
+        WorkItem workItem = event.workItem();
         if (workItem == null) {
             return;
         }
-        CallerRef ref = CallerRef.parse(workItem.callerRef);
+        CallerRef ref = CallerRef.parse(workItem.callerRef());
         if (ref == null) {
             return;
         }

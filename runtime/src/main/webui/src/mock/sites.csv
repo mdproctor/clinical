@@ -1,4 +1,0 @@
-id,siteName,investigatorId,enrolledCount,targetEnrollment,status,adverseEventCount,deviationCount
-site-a,Memorial Cancer Center,Dr. Sarah Chen,45,75,ACTIVE,7,3
-site-b,Johns Hopkins Oncology,Dr. Michael Rodriguez,38,60,ACTIVE,3,2
-site-c,Mayo Clinic Research,Dr. Emily Watson,44,65,ACTIVE,2,3

@@ -3,13 +3,14 @@ import {
   lookup,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
-import { adverseEventsDs, aePrecedentsDs, ledgerEntriesDs, TRIAL_ID, DEMO_MODE } from "../datasets.js";
+import type { DataSourceBinding } from "@casehubio/pages-data";
+import { getTrialId } from "../datasets.js";
 import { auditTrailStub } from "../stubs/audit-trail-viewer.js";
 
 export function safetyWorkbench(): Component {
   const aeTable = dataTable({
     title: "Adverse Events",
-    lookup: lookup(adverseEventsDs.id),
+    lookup: lookup("adverse-events"),
     sortable: true,
     pageSize: 25,
     columns: [
@@ -49,26 +50,16 @@ export function safetyWorkbench(): Component {
       html(`<sla-breach-policy-indicator></sla-breach-policy-indicator>`),
     )],
     ["Precedents", panel("Similar Past Cases",
-      html(`<cbr-precedents-panel
-        endpoint="/api/trials/${TRIAL_ID}/adverse-events/ae-demo-001/precedents"
-        empty-message="No similar adverse events found in case memory"
-        ${DEMO_MODE ? "demo" : ""}
-      ></cbr-precedents-panel>`),
+      html('<cbr-precedents-panel empty-message="No similar adverse events found in case memory"></cbr-precedents-panel>'),
     )],
     ["Audit Trail", panel("Ledger Entries",
-      auditTrailStub(ledgerEntriesDs.id),
+      auditTrailStub("ledger-entries"),
     )],
     ["Grade History", panel("Grade History",
-      html(`<clinical-ae-grade-history
-        endpoint="/api/trials/${TRIAL_ID}/sites/site-demo-001/enrollments/enr-demo-001/adverse-events/ae-demo-001/grade-history"
-        ${DEMO_MODE ? "demo" : ""}
-      ></clinical-ae-grade-history>`),
+      html('<clinical-ae-grade-history></clinical-ae-grade-history>'),
     )],
     ["Regrade", panel("Regrade Assessment",
-      html(`<clinical-ae-regrade
-        endpoint="/api/trials/${TRIAL_ID}/sites/site-demo-001/enrollments/enr-demo-001/adverse-events/ae-demo-001/regrade"
-        ${DEMO_MODE ? "demo" : ""}
-      ></clinical-ae-regrade>`),
+      html('<clinical-ae-regrade></clinical-ae-regrade>'),
     )],
   );
 
@@ -78,4 +69,4 @@ export function safetyWorkbench(): Component {
   );
 }
 
-export const safetyWorkbenchDatasets = [adverseEventsDs, aePrecedentsDs, ledgerEntriesDs];
+export const safetyWorkbenchDatasets: DataSourceBinding[] = [];

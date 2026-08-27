@@ -1,6 +1,0 @@
-occurredAt,entryType,actorId,subjectId,digest
-2026-07-01T10:00:00Z,AdverseEventReported,agent-001,pat-001,d4e5f6a7b8c9d0e1
-2026-07-01T14:30:00Z,PiApproval,pi-chen,dev-001,a1b2c3d4e5f6a7b8
-2026-07-03T15:00:00Z,IrbDecision,irb-committee-001,dev-001,b2c3d4e5f6a7b8c9
-2026-07-03T08:15:00Z,SusarEscalation,agent-001,ae-003,c3d4e5f6a7b8c9d0
-2026-07-01T18:00:00Z,IndFiling,sponsor-admin,ae-001,d4e5f6a7b8c9d0e1

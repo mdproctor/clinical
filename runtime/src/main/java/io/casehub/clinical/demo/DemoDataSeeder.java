@@ -32,7 +32,7 @@ import io.casehub.qhorus.api.gateway.ChannelRef;
 import io.casehub.qhorus.api.gateway.InboundHumanMessage;
 import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.qhorus.runtime.gateway.ChannelGateway;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.api.spi.WorkItemStore;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.arc.profile.IfBuildProfile;
@@ -408,19 +408,19 @@ public class DemoDataSeeder {
         pollUntil("gate WorkItem for SUSAR case " + caseIdStr, () ->
                 QuarkusTransaction.requiringNew().call(() ->
                         workItemStore.scanAll().stream()
-                                .anyMatch(wi -> wi.callerRef != null
-                                        && wi.callerRef.contains("case:" + caseIdStr))));
+                                .anyMatch(wi -> wi.callerRef() != null
+                                        && wi.callerRef().contains("case:" + caseIdStr))));
 
         // Step 4: Complete the gate WorkItem
         QuarkusTransaction.requiringNew().run(() -> {
-            WorkItemEntity gateWorkItem = workItemStore.scanAll().stream()
-                                                       .filter(wi -> wi.callerRef != null && wi.callerRef.contains("case:" + caseIdStr))
+            WorkItem gateWorkItem = workItemStore.scanAll().stream()
+                                                       .filter(wi -> wi.callerRef() != null && wi.callerRef().contains("case:" + caseIdStr))
                                                        .findFirst()
                                                        .orElseThrow(() -> new IllegalStateException(
                             "Gate WorkItem not found for SUSAR case " + caseIdStr));
 
             String resolution = "{\"decision\":\"APPROVED\",\"approvedBy\":\"demo-investigator\"}";
-            workItemService.completeFromSystem(gateWorkItem.id, "demo-investigator", resolution);
+            workItemService.completeFromSystem(gateWorkItem.id(), "demo-investigator", resolution);
         });
         LOG.infof("SUSAR %d: gate WorkItem completed", index);
 

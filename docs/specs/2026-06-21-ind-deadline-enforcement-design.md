@@ -242,7 +242,7 @@ void markFiled(UUID caseId) {
 Observes `WorkItemLifecycleEvent` for `ESCALATED` status. Discriminates via `callerRef` → `caseId` → `AdverseEvent.find("regulatorySubmissionCaseId", caseId)`.
 
 **API constraints established from source inspection:**
-- `WorkItemLifecycleEvent` has no `callerRef()` method. The embedded `WorkItemEntity` entity is accessible via `event.source()` — null for wire-reconstructed events.
+- `WorkItemLifecycleEvent` has no `callerRef()` method. The embedded `WorkItem` entity is accessible via `event.source()` — null for wire-reconstructed events.
 - `WorkItemLifecycleEvent.detail()` is always `null` for `ESCALATED` events: `ExpiryLifecycleService.fireLifecycleEvent()` calls `WorkItemLifecycleEvent.of(event, item, "system", null)` (hardcoded null detail). The `Exhausted(reason)` string goes to the audit log only, not to the lifecycle event.
 - `CallerRef.parse(String)` already exists in `io.casehub.workadapter` — a sealed interface with `PlanItemCallerRef` and `GateCallerRef` subtypes. `CallerRef.caseId()` extracts the UUID from either. **No engine addition is needed.** This is the same API used by `IrbDecisionListener` (line 78: `CallerRef ref = CallerRef.parse(workItem.callerRef)`).
 - Use `instanceof` pattern matching for `event.source()` — matches `IrbDecisionListener` pattern, null-safe, prevents `ClassCastException` if the contract changes.

@@ -1,5 +1,0 @@
-capability,trustScore,trustDimension,maturityPhase,decisionCount,endorsementRatio
-safety-monitoring,0.94,safety-accuracy,2,156,0.942
-eligibility-screening,0.88,eligibility-precision,1,89,0.876
-protocol-review,0.91,protocol-adherence,2,42,0.905
-safety-monitoring,0.87,safety-accuracy,0,134,0.873

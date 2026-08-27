@@ -42,6 +42,17 @@ public class ProtocolAmendmentResource {
     @Inject
     ClinicalCbrService       cbrService;
 
+
+    @GET
+    @RolesAllowed({ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR,
+                   ClinicalGroups.COORDINATOR, ClinicalGroups.MONITOR})
+    public List<AmendmentResponse> list(@PathParam("trialId") UUID trialId) {
+        ClinicalTrial trial = ClinicalTrial.findByIdForTenant(trialId, principal);
+        if (trial == null) {return List.of();}
+        List<ProtocolAmendment> amendments = ProtocolAmendment.list("trialId = ?1 and tenantId = ?2", trialId, trial.tenantId);
+        return amendments.stream().map(this::toResponse).toList();
+    }
+
     @POST
     @RolesAllowed({ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR})
     public Response propose(@PathParam("trialId") UUID trialId,

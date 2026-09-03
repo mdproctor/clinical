@@ -1,90 +1,27 @@
-# clinical Workspace
+# CLAUDE.md
 
 **Name:** casehub-clinical
-**Project repo:** /Users/mdproctor/claude/casehub/clinical
-**Workspace type:** public
 
-## Session Start
+## Project Type
 
-Run `add-dir /Users/mdproctor/claude/casehub/clinical` before any other work.
+**Type:** java
 
-## Artifact Locations
-
-| Skill | Writes to |
-|-------|-----------|
-| brainstorming (specs) | `specs/` |
-| writing-plans (plans) | `plans/` |
-| handover | `HANDOFF.md` |
-| idea-log | `IDEAS.md` |
-| design-snapshot | `snapshots/` |
-| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic`) |
-| adr | `adr/` |
-| write-blog | `blog/` |
-
-## Structure
-
-- `HANDOFF.md` — session handover (single file, overwritten each session)
-- `IDEAS.md` — idea log (single file)
-- `specs/` — brainstorming / design specs (superpowers output)
-- `plans/` — implementation plans (superpowers output)
-- `snapshots/` — design snapshots with INDEX.md (auto-pruned, max 10)
-- `adr/` — architecture decision records with INDEX.md
-- `blog/` — project diary entries with INDEX.md
-- `design/` — epic journal (created by `epic` at branch start)
-
-## Git Discipline
-
-Two git repositories are active in every session: a **workspace** (methodology artifacts: handover, blog, specs, plans, ADRs) and the **project repo** (source code).
-
-Before any git operation, run `git rev-parse --show-toplevel` to confirm which repo is currently active. Do not assume — the session may have opened in either. cd to the correct repo before staging:
-- Source code commits → project repo
-- Methodology artifacts → workspace
-
-
-## Rules
-
-- All methodology artifacts go here, not in the project repo
-- Promotion to project repo is always explicit — never automatic
-- Workspace branches mirror project branches — switch both together
-
-## Peer Repos — Hard Boundary
-
-**This session owns exactly two repos: the workspace and the project repo.**
-Every other casehubio repo is a peer repo with its own Claude session.
-
-Peer repos (never commit or push to these from this session):
-- `/Users/mdproctor/claude/casehub/parent` and all paths under it
-- `/Users/mdproctor/claude/casehub/engine`
-- `/Users/mdproctor/claude/casehub/ledger`
-- `/Users/mdproctor/claude/casehub/work`
-- `/Users/mdproctor/claude/casehub/qhorus`
-- `/Users/mdproctor/claude/casehub/connectors`
-- `/Users/mdproctor/claude/casehub/devtown`
-- `/Users/mdproctor/claude/casehub/aml`
-- Any other sibling directory under `/Users/mdproctor/claude/casehub/`
-
-**When a cross-repo doc change is needed** (e.g. `docs/PLATFORM.md`,
-`docs/repos/casehub-clinical.md` in the parent): file a GitHub issue on
-`casehubio/parent` describing the change — never edit or commit directly.
-
-Skills that check this (implementation-doc-sync, work-end, handover) must
-read this section before deciding where to commit doc changes.
-
-## Routing
-
-| Artifact   | Destination | Notes |
-|------------|-------------|-------|
-| adr        | project     | lands in `docs/adr/` — promoted at epic close |
-| specs      | project     | lands in `docs/specs/` — promoted at epic close |
-| blog       | project     | lands in `docs/blog/` — promoted at work end |
-| plans      | workspace   | stay in workspace permanently |
-| design     | workspace   | epic journal stays in workspace |
-| snapshots  | workspace   | stay in workspace permanently |
-| handover   | workspace   | |
+**Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2, GraalVM 25 (native image target)
 
 ---
 
-# casehub-clinical — Claude Code Project Guide
+## Work Tracking
+
+**Issue tracking:** enabled
+**GitHub repo:** casehubio/clinical
+
+**Automatic behaviours:**
+- Before implementation begins — check for an active issue. If none, run issue-workflow Phase 1 before writing any code.
+- Before any commit — confirm issue linkage.
+- All commits reference an issue — `Refs #N` or `Closes #N`.
+- All commits must also reference the parent epic — include the epic issue number in the commit message or PR description.
+
+---
 
 ## Platform Docs
 - [Platform Index](https://raw.githubusercontent.com/casehubio/parent/main/docs/INDEX.md) — discovery index (start here)
@@ -117,14 +54,6 @@ This repo is one component of the casehubio multi-repo platform. **Before implem
 - casehub-work: `../parent/docs/repos/casehub-work.md`
 - casehub-qhorus: `../parent/docs/repos/casehub-qhorus.md`
 - casehub-connectors: `../parent/docs/repos/casehub-connectors.md`
-
----
-
-## Project Type
-
-type: java
-
-**Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2, GraalVM 25 (native image target)
 
 ---
 
@@ -186,7 +115,7 @@ Consult these before making domain model, compliance, or grading decisions:
 | Standard / Reference | What it covers | Use for |
 |----------------------|---------------|---------|
 | [ICH E6(R3) GCP](https://www.ich.org/page/efficacy-guidelines) | Good Clinical Practice — authoritative source for trial conduct, adverse event reporting obligations, PI responsibilities | Compliance requirements, SLA derivation, PI authorisation obligations |
-| [CTCAE v5.0](https://ctep.cancer.gov/protocoldevelopment/electronic_applications/ctc.htm) | NCI Common Terminology Criteria for Adverse Events — Grade 1–5 definitions and severity thresholds | `CtcaeGrade` enum, SLA assignments per grade |
+| [CTCAE v5.0](https://ctep.cancer.gov/protocoldevelopment/electronic_applications/ctc.htm) | NCI Common Terminology Criteria for Adverse Events — Grade 1-5 definitions and severity thresholds | `CtcaeGrade` enum, SLA assignments per grade |
 | [21 CFR Part 312](https://www.ecfr.gov/current/title-21/chapter-I/subchapter-D/part-312) | FDA IND requirements — expedited safety reporting, protocol amendments, sponsor obligations | FDA reporting SLAs, audit trail requirements |
 | [FHIR ResearchStudy / ResearchSubject](https://hl7.org/fhir/researchstudy.html) | HL7 FHIR standard data model for clinical trials and subjects | Domain model field names and relationships — canonical reference for what fields a trial/site/patient needs |
 | [ClinicalAgent (arXiv 2404.14777)](https://arxiv.org/abs/2404.14777) | Peer-reviewed open-source baseline (ACM BCB '24) | Comparison baseline — what casehub-clinical must structurally exceed |
@@ -230,7 +159,7 @@ Read these **before designing**, not after. The concern column tells you when ea
 | Concern | Read first |
 |---------|-----------|
 | New Flyway migration | Clinical uses datasource-scoped dirs — see Flyway migration structure in Ecosystem Conventions |
-| Migration version number | V100–V999 clinical domain (default datasource); V2000+ ledger subclass join tables (qhorus datasource) |
+| Migration version number | V100-V999 clinical domain (default datasource); V2000+ ledger subclass join tables (qhorus datasource) |
 | LedgerEntry subclass | Must live in `io.casehub.clinical.ledger` — never in `io.casehub.clinical.entity`; Panache cannot span two PUs |
 | LedgerEntry subclass `domainContentBytes()` | Every `LedgerEntry` subclass with persistent `@Column` fields MUST override `domainContentBytes()`. The `LedgerProcessor` build-time validator (casehub-ledger SNAPSHOT) enforces this — CDI deployment fails if missing. Return `String.join("|", field1, field2, ...).getBytes(StandardCharsets.UTF_8)`. See all 6 clinical subclasses for reference. |
 | Cross-datasource `@Transactional` | Requires XA on both datasources — see Multi-datasource XA in Ecosystem Conventions |
@@ -281,7 +210,7 @@ Goals:
 
 Key bindings (site-level sub-case):
 - `eligibility-screening` fires on new patient registration
-- `adverse-event-escalation` fires when safety-monitoring reports Grade ≥ 3 event — 24h WorkItem SLA
+- `adverse-event-escalation` fires when safety-monitoring reports Grade >= 3 event — 24h WorkItem SLA
 - `pi-authorisation-required` fires on protocol deviation — COMMAND to PI, creates formal Commitment
 - `irb-consultation` fires when PI-authorised deviation requires ethics review — 72h WorkItem
 - `dsmb-review` fires on accumulation of safety signals across sites — trial-level sub-case coordination
@@ -297,7 +226,7 @@ Trial case (parent)
 ├── Site B sub-case
 │   └── ...
 └── Trial-level rollup binding (aggregates site sub-cases)
-    → DSMB review triggers when safety signal threshold crossed across ≥ 2 sites
+    → DSMB review triggers when safety signal threshold crossed across >= 2 sites
 ```
 
 Trial-level binding fires on aggregated context from all site sub-cases — no site-level agent reasons about this; the engine detects the cross-site pattern from accumulated blackboard state.
@@ -306,13 +235,13 @@ Trial-level binding fires on aggregated context from all site sub-cases — no s
 
 | Capability | Foundation prerequisite |
 |-----------|------------------------|
-| Site-level sub-case orchestration | engine#112 ✅ CLOSED (2026-05-15) — SubCaseCompletionListener, SubCaseCompletionService wired; sub-case execution available in 0.2-SNAPSHOT |
-| Adverse event SLA WorkItem | casehub-work ✅ production |
-| PI authorisation commitment lifecycle | P0 complete (engine#186 ✅, qhorus ✅) |
-| GDPR consent withdrawal (Art.17) | LedgerErasureService ✅ |
-| FDA Merkle audit trail | CaseLedgerEntry ✅ (2026-04-26) |
-| EU AI Act Art.12 ComplianceSupplement | casehub-ledger ✅ |
-| HITL WorkItem → case signal (IRB gate) | work#136 ✅ closed; `WorkItemLifecycleAdapter` in engine/work-adapter ✅ — IRB gate unblocked |
+| Site-level sub-case orchestration | engine#112 CLOSED (2026-05-15) — SubCaseCompletionListener, SubCaseCompletionService wired; sub-case execution available in 0.2-SNAPSHOT |
+| Adverse event SLA WorkItem | casehub-work production |
+| PI authorisation commitment lifecycle | P0 complete (engine#186, qhorus) |
+| GDPR consent withdrawal (Art.17) | LedgerErasureService |
+| FDA Merkle audit trail | CaseLedgerEntry (2026-04-26) |
+| EU AI Act Art.12 ComplianceSupplement | casehub-ledger |
+| HITL WorkItem → case signal (IRB gate) | work#136 closed; `WorkItemLifecycleAdapter` in engine/work-adapter — IRB gate unblocked |
 | Trust-weighted safety agent routing | P1.3 TrustWeightedSelectionStrategy wired in engine |
 | LLM protocol amendment supervisor | AgentProvider SPI (platform-agent-api); `LlmProtocolAmendmentAdvisor` wired (clinical#86) |
 
@@ -321,16 +250,16 @@ Trial-level binding fires on aggregated context from all site sub-cases — no s
 Each layer corresponds to a foundation module integration step. LAYER-LOG.md tracks completion — a layer is not done until its entry is written.
 
 ```
-Layer 1: domain baseline — FHIR R5 domain model, six entities, REST CRUD, no accountability ✅ (Epics 1+2)
-Layer 2: + casehub-work — adverse event SLA (GCP ICH E6(R3) §5.17; Grade 3/4 = 24h) ✅ (Epic 4)
-Layer 3: + casehub-qhorus — PI authorisation COMMAND for protocol deviations ✅ (Epic 5)
-Layer 4: + casehub-ledger — FDA Merkle tamper-evident audit trail ✅ (Epic 4)
-Layer 5: + casehub-engine — IRB gate as engine PlanItem; CRITICAL deviation path ✅ (Epic 6)
-Layer 6: trial-level blackboard aggregation — DSMB rollup via cross-site signal detection ✅ (Epic 3)
-Layer 7: trust routing — ClinicalTrustRoutingPolicyProvider, SusarAgentAttestationWriter (LedgerAttestation), RegulatorySubmissionCaseService (IND 21 CFR 312.32), AeEscalationCompletedEvent.unexpected ✅ (casehubio/clinical#8, 2026-06-15)
-Layer 8: ActionRiskClassifier oversight gate + GDPR consent withdrawal — ClinicalActionRiskClassifier, SusarCriteriaEvaluator, SusarGateDecisionListener, ConsentWithdrawalService, ClinicalComplianceSupplement (EU AI Act Art.12) ✅ (casehubio/clinical#47, #76, #77, #7, 2026-06-13)
-Layer 9: Showcase — eligibility screening (EligibilityScreeningService, eligibility-screening.yaml, IRB gate), protocol amendment (ProtocolAmendmentAdvisor SPI, protocol-amendment.yaml, LlmProtocolAmendmentAdvisor via AgentProvider clinical#86) ✅ (casehubio/clinical#10, 2026-06-18)
-Layer 10: IND deadline enforcement — regulatory-submission.yaml capability→humanTask with expiresAtExpression engine SPI (ExpressionEngine.extractString, HumanTaskTarget.expiresAtExpression, engine#549), ClinicalIndReportingBreachPolicy (stateless two-tier SlaBreachPolicy), RegulatorySubmissionCompleted/BreachListener, IndReportFiled/BreachLedgerEntry, V2026/V2027 ✅ (casehubio/clinical#83, 2026-06-22)
+Layer 1: domain baseline — FHIR R5 domain model, six entities, REST CRUD, no accountability (Epics 1+2)
+Layer 2: + casehub-work — adverse event SLA (GCP ICH E6(R3) §5.17; Grade 3/4 = 24h) (Epic 4)
+Layer 3: + casehub-qhorus — PI authorisation COMMAND for protocol deviations (Epic 5)
+Layer 4: + casehub-ledger — FDA Merkle tamper-evident audit trail (Epic 4)
+Layer 5: + casehub-engine — IRB gate as engine PlanItem; CRITICAL deviation path (Epic 6)
+Layer 6: trial-level blackboard aggregation — DSMB rollup via cross-site signal detection (Epic 3)
+Layer 7: trust routing — ClinicalTrustRoutingPolicyProvider, SusarAgentAttestationWriter (LedgerAttestation), RegulatorySubmissionCaseService (IND 21 CFR 312.32), AeEscalationCompletedEvent.unexpected (casehubio/clinical#8, 2026-06-15)
+Layer 8: ActionRiskClassifier oversight gate + GDPR consent withdrawal — ClinicalActionRiskClassifier, SusarCriteriaEvaluator, SusarGateDecisionListener, ConsentWithdrawalService, ClinicalComplianceSupplement (EU AI Act Art.12) (casehubio/clinical#47, #76, #77, #7, 2026-06-13)
+Layer 9: Showcase — eligibility screening (EligibilityScreeningService, eligibility-screening.yaml, IRB gate), protocol amendment (ProtocolAmendmentAdvisor SPI, protocol-amendment.yaml, LlmProtocolAmendmentAdvisor via AgentProvider clinical#86) (casehubio/clinical#10, 2026-06-18)
+Layer 10: IND deadline enforcement — regulatory-submission.yaml capability→humanTask with expiresAtExpression engine SPI (ExpressionEngine.extractString, HumanTaskTarget.expiresAtExpression, engine#549), ClinicalIndReportingBreachPolicy (stateless two-tier SlaBreachPolicy), RegulatorySubmissionCompleted/BreachListener, IndReportFiled/BreachLedgerEntry, V2026/V2027 (casehubio/clinical#83, 2026-06-22)
 ```
 
 **Note on reading order vs build order:** Layers 2 and 4 were built in the same epic (Epic 4) — reading order differs from build order. LAYER-LOG.md preserves reading order.
@@ -362,14 +291,14 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.jdk/Contents/Home  # nati
 **Use `mvn` not `./mvnw`** — maven wrapper not configured on this machine.
 
 **Flyway migration structure (clinical-specific):**
-casehub-work (V1–V21+) and casehub-qhorus (V1–V9) both ship migrations at `classpath:db/migration`. When both are on the classpath, Flyway finds duplicate version numbers and fails at startup. Clinical avoids this by placing migrations in datasource-scoped subdirectories:
+casehub-work (V1-V21+) and casehub-qhorus (V1-V9) both ship migrations at `classpath:db/migration`. When both are on the classpath, Flyway finds duplicate version numbers and fails at startup. Clinical avoids this by placing migrations in datasource-scoped subdirectories:
 
-- `db/migration/default/` — clinical domain migrations (V100–V123+). Default datasource Flyway configured as: `quarkus.flyway.locations=classpath:db/migration/default`
+- `db/migration/default/` — clinical domain migrations (V100-V123+). Default datasource Flyway configured as: `quarkus.flyway.locations=classpath:db/migration/default`
 - `db/migration/qhorus/` — clinical ledger subclass join tables (V2000+). qhorus datasource Flyway configured as: `quarkus.flyway.qhorus.locations=classpath:db/migration,classpath:db/ledger/migration,classpath:db/migration/qhorus` (includes qhorus jar migrations and casehub-ledger migrations)
 
 Version range conventions still apply within each directory:
-- V100–V999: clinical domain tables (default datasource)
-- V2000+: consumer-owned ledger subclass join tables (qhorus datasource); V1000–V1007 are casehub-ledger base tables (reserved; do not use in clinical)
+- V100-V999: clinical domain tables (default datasource)
+- V2000+: consumer-owned ledger subclass join tables (qhorus datasource); V1000-V1007 are casehub-ledger base tables (reserved; do not use in clinical)
 
 **Tests use `drop-and-create` + Flyway disabled.** Both H2 databases use `quarkus.flyway.migrate-at-start=false` and `quarkus.hibernate-orm.database.generation=drop-and-create`. The classpath migration collision cannot be resolved in tests without excluding JARs from scanning. AML has the same latent issue — tracked casehubio/aml#20.
 
@@ -394,9 +323,9 @@ Quarkus ArC ignores `beans.xml` `<alternatives>` — the config property is requ
 
 **`FixedCurrentPrincipal` CDI ambiguity:** `FixedCurrentPrincipal` (`@Alternative @Priority(1)` from `casehub-platform-testing`) competes with `MockCurrentPrincipal` (`@DefaultBean` from `casehub-platform`) when test classes inject `FixedCurrentPrincipal` directly. The `@Priority(1)` annotation alone does not resolve the ambiguity in Quarkus ArC — add `io.casehub.platform.testing.FixedCurrentPrincipal` to `quarkus.arc.selected-alternatives` in test `application.properties`. Without this, CDI deployment fails with `AmbiguousResolutionException` for `CurrentPrincipal` whenever a test class declares `@Inject FixedCurrentPrincipal`.
 
-**SPI override tests — use `@InjectMock`, not `@TestProfile + @Alternative`:** `getEnabledAlternatives()` in `QuarkusTestProfile` **replaces** (does not merge with) `quarkus.arc.selected-alternatives` from `application.properties`. Returning `Set.of(MyTestBean.class)` deactivates `InMemoryLedgerEntryRepository`, `MemoryPlanItemStore`, `MemorySubCaseGroupRepository`, `InMemoryCaseMetaModelRepository`, and `InMemoryMemoryStore` — causing startup failures. Use `@io.quarkus.test.InjectMock` on the SPI field instead; the mock replaces the CDI bean without touching selected-alternatives. See `IrbCommitteePolicySpiTest` for the reference pattern. (Protocol PP-20260601-aec35f; GE-20260601-cee623)
+**SPI override tests — use `@InjectMock`, not `@TestProfile + @Alternative`:** `getEnabledAlternatives()` in `QuarkusTestProfile` **replaces** (does not merge with) `quarkus.arc.selected-alternatives` from `application.properties`. Returning `Set.of(MyTestBean.class)` deactivates `InMemoryLedgerEntryRepository`, `MemoryPlanItemStore`, `MemorySubCaseGroupRepository`, `InMemoryCaseMetaModelRepository`, and `InMemoryMemoryStore` — causing startup failures. Use `@io.quarkus.test.InjectMock` on the SPI field instead; the mock replaces the CDI bean without touching selected-alternatives. See `IrbCommitteePolicySpiTest` for the reference pattern.
 
-**`@InjectMock` replaces the CDI bean for the entire class — stub in `@BeforeEach`:** When `@InjectMock SomeService mock` is added to a multi-test class, all tests see the Mockito mock. Unstubbed String methods return `null` (Mockito default). If production code has a null-guard that triggers an alternate path (e.g. an audit failure entry), tests that never reference `mock` will silently fail with the wrong side effect. Add `when(mock.method(any())).thenReturn(safeValue)` in `@BeforeEach`; override in specific tests as needed. See `SponsorNotificationListenerTest` for the pattern. (GE-20260604-4298f9)
+**`@InjectMock` replaces the CDI bean for the entire class — stub in `@BeforeEach`:** When `@InjectMock SomeService mock` is added to a multi-test class, all tests see the Mockito mock. Unstubbed String methods return `null` (Mockito default). If production code has a null-guard that triggers an alternate path (e.g. an audit failure entry), tests that never reference `mock` will silently fail with the wrong side effect. Add `when(mock.method(any())).thenReturn(safeValue)` in `@BeforeEach`; override in specific tests as needed. See `SponsorNotificationListenerTest` for the pattern.
 
 **Multi-datasource XA:** Any `@Transactional` method writing to both datasources requires XA in **both** `application.properties` (production) and test `application.properties`:
 ```properties
@@ -407,13 +336,13 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **Reactive suppression:** `quarkus.datasource.reactive=false` and `quarkus.datasource.qhorus.reactive=false` are required in **both** test and production `application.properties`. Without them, `QhorusDashboardService` (which unconditionally injects `@Vetoed` reactive services) fails CDI deployment. `QhorusDashboardService` is also excluded via `quarkus.arc.exclude-types` in all profiles as belt-and-suspenders. Engine reactive SPIs (`ReactiveCaseInstanceRepository`, `ReactiveEventLogRepository`, etc.) are satisfied by `InMemoryReactive*` stores from `casehub-engine-persistence-memory` — these don't need a reactive datasource. `JpaReactive*` stores from `casehub-engine-persistence-hibernate` are excluded in all profiles (they require Hibernate Reactive Panache which needs `reactive=true`).
 
-**Work-core strategy discovery:** `EngineStrategyResolver`'s `Instance<NamedStrategy>` does not discover beans that implement `NamedStrategy` transitively (e.g. `ContinuationPolicy implements ClaimSlaPolicy extends NamedStrategy`). `WorkCoreStrategyRegistrar` in `io.casehub.clinical.config` programmatically registers `ContinuationPolicy` (ClaimSlaPolicy, id="continuation") and `LeastLoadedStrategy` (WorkerSelectionStrategy, id="least-loaded") from `casehub-work-core` via `@Observes @Priority(1) StartupEvent`. (GE-20260714-a7267a)
+**Work-core strategy discovery:** `EngineStrategyResolver`'s `Instance<NamedStrategy>` does not discover beans that implement `NamedStrategy` transitively (e.g. `ContinuationPolicy implements ClaimSlaPolicy extends NamedStrategy`). `WorkCoreStrategyRegistrar` in `io.casehub.clinical.config` programmatically registers `ContinuationPolicy` (ClaimSlaPolicy, id="continuation") and `LeastLoadedStrategy` (WorkerSelectionStrategy, id="least-loaded") from `casehub-work-core` via `@Observes @Priority(1) StartupEvent`.
 
-**After-commit CDI event firing:** `AdverseEventService.reportAdverseEvent()` uses `TransactionSynchronizationRegistry.registerInterposedSynchronization()` to fire `AdverseEventReportedEvent` in `afterCompletion(STATUS_COMMITTED)` — not inline with `fireAsync()`. Without this, async observers (`SusarOversightCaseService`, `RegulatorySubmissionCaseService`) race the transaction commit and may not see the persisted AE. Any new service that fires CDI async events inside `@Transactional` methods and expects observers to read the persisted data should use the same pattern. (GE-20260512-0fe012)
+**After-commit CDI event firing:** `AdverseEventService.reportAdverseEvent()` uses `TransactionSynchronizationRegistry.registerInterposedSynchronization()` to fire `AdverseEventReportedEvent` in `afterCompletion(STATUS_COMMITTED)` — not inline with `fireAsync()`. Without this, async observers (`SusarOversightCaseService`, `RegulatorySubmissionCaseService`) race the transaction commit and may not see the persisted AE. Any new service that fires CDI async events inside `@Transactional` methods and expects observers to read the persisted data should use the same pattern.
 
 **Ledger SNAPSHOT reactive services:** Fixed in ledger#92 — `LedgerVerificationService` and related services now use `Instance<ReactiveLedgerEntryRepository>` with `isResolvable()` guard. JDBC-only consumers start cleanly without `quarkus.arc.exclude-types`. No workaround needed.
 
-**Dev-mode CDI alternative selection:** `quarkus.arc.selected-alternatives` does NOT support `%dev.` profile overrides (GE-20260629-e6460e). The workaround: select ALL alternatives (both JPA and memory) in the non-profiled `selected-alternatives`. Use profile-specific `exclude-types` to control which survive: `%dev.quarkus.arc.exclude-types` removes reactive JPA stores (memory wins); `%prod.quarkus.arc.exclude-types` removes memory stores (JPA wins). `DevSchemaInitializer` (`@IfBuildProfile("dev")`, `@Priority(1)`) creates the `ledger_subject_sequence` table before `DemoDataSeeder` runs.
+**Dev-mode CDI alternative selection:** `quarkus.arc.selected-alternatives` does NOT support `%dev.` profile overrides. The workaround: select ALL alternatives (both JPA and memory) in the non-profiled `selected-alternatives`. Use profile-specific `exclude-types` to control which survive: `%dev.quarkus.arc.exclude-types` removes reactive JPA stores (memory wins); `%prod.quarkus.arc.exclude-types` removes memory stores (JPA wins). `DevSchemaInitializer` (`@IfBuildProfile("dev")`, `@Priority(1)`) creates the `ledger_subject_sequence` table before `DemoDataSeeder` runs.
 
 **Connector CDI exclusions:** `TwilioSmsConnector` and `WhatsAppConnector` (from `casehub-connectors-core`) require external credentials (`casehub.connectors.twilio.*`, `casehub.connectors.whatsapp.*`) not present in the test environment. They are excluded via `quarkus.arc.exclude-types` in test `application.properties`. `SlackConnector` is replaced by `TestSlackConnector` via `@Mock`. When adding new connectors with required external config, add them to the exclude-types list.
 
@@ -423,7 +352,7 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **`ActionGateApprovedEvent` 6th param `resolutionTypeName` (SNAPSHOT update):** `ActionGateApprovedEvent(UUID caseId, String tenancyId, long gateId, String workItemResolution, String approvedBy, @Nullable String resolutionTypeName)`. Test callers pass `null` as the 6th arg.
 
-**`GroupMembershipProvider` CDI ambiguity:** `MockGroupMembershipProvider` (casehub-platform, `@DefaultBean`) and `NoOpGroupMembershipProvider` (casehub-work, `@DefaultBean`) both implement `GroupMembershipProvider`, causing `AmbiguousResolutionException`. `quarkus.arc.exclude-types` does NOT suppress beans from Jandex-indexed JARs (GE-20260601-848232). Fix: `ClinicalGroupMembershipProvider` in `runtime/src/test/java/.../support/` is a concrete `@ApplicationScoped` (non-`@DefaultBean`) bean that suppresses both. Do not remove it.
+**`GroupMembershipProvider` CDI ambiguity:** `MockGroupMembershipProvider` (casehub-platform, `@DefaultBean`) and `NoOpGroupMembershipProvider` (casehub-work, `@DefaultBean`) both implement `GroupMembershipProvider`, causing `AmbiguousResolutionException`. `quarkus.arc.exclude-types` does NOT suppress beans from Jandex-indexed JARs. Fix: `ClinicalGroupMembershipProvider` in `runtime/src/test/java/.../support/` is a concrete `@ApplicationScoped` (non-`@DefaultBean`) bean that suppresses both. Do not remove it.
 
 **`CurrentPrincipal` CDI resolution (clinical#88):** `OidcCurrentPrincipal @RequestScoped @Alternative @Priority(100)` (casehub-platform-oidc) is the sole active `CurrentPrincipal`. Tenant identity comes from the JWT `tenancyId` claim. Platform#111 shipped `@Alternative @Priority(100)` on `OidcCurrentPrincipal`, which automatically displaces all non-alternative `CurrentPrincipal` implementations (`QhorusInboundCurrentPrincipal`, `TenantScopedPrincipal`). No `%prod.quarkus.arc.exclude-types` entries needed. `FixedCurrentPrincipal @Alternative @Priority(200)` (casehub-platform-testing) wins in tests.
 
@@ -431,9 +360,9 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **qhorus MessageObserver SPI (clinical#140):** `PiResponseListener` implements `MessageObserver` (qhorus SPI) — NOT `@ObservesAsync`. The qhorus `MessageObserverDispatcher` calls `observer.onMessage()` on beans implementing `MessageObserver`, not via CDI async events. Uses `@Transactional(TxType.REQUIRES_NEW)` because the dispatcher fires in `afterCompletion` where no JTA transaction is active. **pi-oversight channels must include `EVENT` in `allowedTypes`** — `receiveHumanMessage` dispatches an internal EVENT-type message as part of CDI delivery; omitting EVENT causes `MessageTypeViolationException`. See `ProtocolDeviationService.CHANNEL_ALLOWED_TYPES`.
 
-**`casehub-platform-agent-api` dependency scope (clinical#86):** The parent POM manages this artifact with `runtime` scope. Adding it without explicit `<scope>compile</scope>` silently inherits `runtime` — classes invisible at compile time. Always use explicit `<scope>compile</scope>` when promoting a managed runtime dependency. (GE-20260801-a8ec17)
+**`casehub-platform-agent-api` dependency scope (clinical#86):** The parent POM manages this artifact with `runtime` scope. Adding it without explicit `<scope>compile</scope>` silently inherits `runtime` — classes invisible at compile time. Always use explicit `<scope>compile</scope>` when promoting a managed runtime dependency.
 
-**Engine Quartz worker thread transaction context (clinical#86):** Worker functions registered via `Worker.builder().function()` execute on Quartz scheduler threads with no JTA transaction or CDI request context. Panache Active Record calls fail. Wrap in `QuarkusTransaction.requiringNew().call(...)`. (GE-20260801-3bee47)
+**Engine Quartz worker thread transaction context (clinical#86):** Worker functions registered via `Worker.builder().function()` execute on Quartz scheduler threads with no JTA transaction or CDI request context. Panache Active Record calls fail. Wrap in `QuarkusTransaction.requiringNew().call(...)`.
 
 **`ChannelService.create()` — use `ChannelCreateRequest` for `allowedTypes`:** The 9-argument overload with a trailing `String allowedTypes` was removed in a qhorus SNAPSHOT. Use `ChannelCreateRequest` instead: `channelService.create(new ChannelCreateRequest(name, desc, semantic, null, null, null, null, null, ALLOWED_TYPES_SET, null, null, null, null, null))` where `ALLOWED_TYPES_SET` is `Set<MessageType>`. `ProtocolDeviationService.CHANNEL_ALLOWED_TYPES` is now `Set<MessageType>` (not `String`). The old form is a compile-time error on newer qhorus SNAPSHOTs.
 
@@ -459,7 +388,7 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **`PlanTrace` 7th param `variantId` (SNAPSHOT update):** `PlanTrace` record in `casehub-neocortex-memory-api` gained a 7th `variantId` parameter (nullable). All constructors — `new PlanTrace(bindingName, capabilityName, workerName, stepOutcome, priority, parameters, variantId)` — require the extra arg. Clinical callers pass `null`.
 
-**CBR `eventType` field is `categoricalList` not `categorical`:** `ClinicalCbrSchemaInitializer` registers `eventType` as `FeatureField.categoricalList("eventType")`. Feature builders (`AeCbrFeatureBuilder`, `DemoDataSeeder.seedTrajectoryCase`) must store it as `List.of(value)`, not plain `String`. `AeTrajectoryAlertService` and `TrialDashboardResource` query with `CbrFilter.contains()` which requires `CategoricalList`. (GE-20260721-621a64)
+**CBR `eventType` field is `categoricalList` not `categorical`:** `ClinicalCbrSchemaInitializer` registers `eventType` as `FeatureField.categoricalList("eventType")`. Feature builders (`AeCbrFeatureBuilder`, `DemoDataSeeder.seedTrajectoryCase`) must store it as `List.of(value)`, not plain `String`. `AeTrajectoryAlertService` and `TrialDashboardResource` query with `CbrFilter.contains()` which requires `CategoricalList`.
 
 **`WorkItem` is now a Java record in `io.casehub.work.api` (SNAPSHOT update):** Fields are accessed via record accessors (`id()`, `callerRef()`, `status()`, `payload()`, `resolution()`, etc.) not field access (`.id`, `.callerRef`). `WorkItemEntity` (JPA entity) remains in `io.casehub.work.runtime.model` for direct persistence. `WorkItemStore.scanAll()` returns `List<WorkItem>` (API records). `WorkItemLifecycleEvent` moved from `io.casehub.work.runtime.event` to `io.casehub.work.api`. Tests construct `WorkItem.builder().id(uuid).status(status).build()` instead of `new WorkItemEntity()`.
 
@@ -473,7 +402,7 @@ H2 and production JDBC both require this. Without it, Agroal throws "Failed to e
 
 **`casehub.signal.api-url` and `casehub.signal.number` test config:** Engine SNAPSHOT added required signal config properties. Set to placeholder values in test `application.properties` (`http://localhost:8080` and `+10000000000`).
 
-**H2 reserved-word columns:** `value` and `type` are H2 reserved words. Entity fields mapped to `result_value` and `vital_type` column names via `@Column(name = ...)`. Flyway migrations use the renamed columns. (GE-20260827-d5a3cf)
+**H2 reserved-word columns:** `value` and `type` are H2 reserved words. Entity fields mapped to `result_value` and `vital_type` column names via `@Column(name = ...)`. Flyway migrations use the renamed columns.
 
 **Engine CDI wiring (Layer 5+):** When adding `casehub-engine` to the classpath, also add `casehub-platform` and `casehub-platform-expression` — without them, engine beans (`JQEvaluator`, event handlers) cannot resolve their injection points and CDI startup fails.
 
@@ -512,7 +441,7 @@ In test `application.properties`:
 - **Engine case activation — three-phase pattern:** Any service that calls `startCase().toCompletableFuture().join()` must NOT be `@Transactional` at that call site. Split into three separate `@Transactional` calls: (1) validate + update domain status, (2) call `startCase().join()` outside any transaction boundary, (3) persist the returned `caseId`. Holding a DB connection across `join()` deadlocks the Agroal pool when the engine's JPA persistence also needs a connection from the same pool. See `TrialActivationService` for the reference implementation.
 - **inputMapping not inputProjection:** YAML humanTask bindings use `inputMapping` field (mini-DSL, not JQ) — the field sets the WorkItem payload. `outputMapping` uses JQ flat pattern `"{ key: . }"` (engine#314: nested `{..}` unsupported).
 - **YAML worker capability binding — `capability: name` directly, NOT `worker: { capability: ... }`:** `io.casehub.model.Binding` has `capability: String` as a direct schema field; there is no `worker:` field. Jackson silently drops unknown keys (`FAIL_ON_UNKNOWN_PROPERTIES = DISABLED`), so `worker: { capability: safety-monitoring }` is parsed without error but ignored — `schemaBinding.getCapability()` returns null and `convertBinding()` throws `IllegalArgumentException: must have capability, subCase, or humanTask`. The correct structure: define `spec.capabilities[- name/inputProjection]` at the YAML top level (the `inputProjection` is a JQ expression applied to the case context to produce worker input), then reference `capability: name` directly on the binding. A Java-function worker ALSO requires programmatic registration in `getDefinition()` override — the YAML alone cannot express a Java-function worker; use `.function(evaluator)` on the builder. See `ClinicalSusarOversightCaseHub` + `susar-oversight.yaml` for the reference pattern.
-- **YAML completion expression required for goals:** Engine SNAPSHOT added `DefaultCaseDefinitionRegistry.validateExpressions()` — every goal defined in a YAML case definition must be referenced in a `completion` expression. Unreferenced goals fail at startup with `IllegalArgumentException: Goal 'X' is not referenced in any completion expression`. Previously unreferenced goals were silently ignored. Add `completion: { success: { allOf: [goal-name] } }` to every YAML with goals. (GE-20260805-22a224)
+- **YAML completion expression required for goals:** Engine SNAPSHOT added `DefaultCaseDefinitionRegistry.validateExpressions()` — every goal defined in a YAML case definition must be referenced in a `completion` expression. Unreferenced goals fail at startup with `IllegalArgumentException: Goal 'X' is not referenced in any completion expression`. Previously unreferenced goals were silently ignored. Add `completion: { success: { allOf: [goal-name] } }` to every YAML with goals.
 - **WorkloadProvider stub:** `casehub-work` injects `WorkloadProvider`. The engine's `CasehubWorkloadProvider` (the bridge) was deleted in engine#378. Clinical provides `StubWorkloadProvider` (`@DefaultBean @ApplicationScoped`, returns 0) in `runtime/src/test/java/.../support/`. `JpaWorkloadProvider` is excluded via `quarkus.arc.exclude-types`. Any new test module that adds engine must add the stub (clinical#41).
 - **CaseLifecycleEvent observers — accept GoalReached in tests:** The in-memory engine does not reliably fire `CaseCompleted` CDI events in `@QuarkusTest` (engine#393). `GoalReached` fires first and is reliable. CDI observers that need to react to case completion should accept both `"GoalReached"` and `"CaseCompleted"` event types, with an idempotency guard (since `GoalReached` fires once per goal, not once per case). See `AeEscalationListener` for the reference pattern.
 - **Direct entity creation — stamp `tenantId = principal.tenancyId()` in `@BeforeEach`:** Any `@QuarkusTest` that creates domain entities directly (not via REST) and later calls services that query by tenant must stamp `ae.tenantId = principal.tenancyId()` (or `trial.tenantId`, etc.) in `@BeforeEach`. Entities created without stamping get the field default `"default"`, which mismatches `FixedCurrentPrincipal.tenancyId()`. Missing the stamp causes `SecurityException` from `InMemoryMemoryStore.query()` or `MemoryPermissions.assertTenant()`, which propagates through the `@Transactional` boundary of `prepareAndMarkRequested()` and marks the JTA transaction as rollback-only — the test fails with no obvious error. Reference patterns: `DsmbRollupTest.persistTrial()`, `AeEscalationContextInjectionTest.setup()`, `AeEscalationLifecycleTest.setup()`, `SusarOversightLifecycleTest.persistAe()`.
@@ -565,19 +494,6 @@ mvn compile -pl api,runtime --batch-mode
 
 ---
 
-## Work Tracking
-
-**Issue tracking:** enabled
-**GitHub repo:** casehubio/clinical
-
-**Automatic behaviours:**
-- Before implementation begins — check for an active issue. If none, run issue-workflow Phase 1 before writing any code.
-- Before any commit — confirm issue linkage.
-- All commits reference an issue — `Refs #N` or `Closes #N`.
-- All commits must also reference the parent epic — include the epic issue number in the commit message or PR description.
-
----
-
 ## Development Workflow
 
 ### Platform Coherence
@@ -610,6 +526,3 @@ After every implementation session:
 - Address drift, staleness, redundancy, duplication, and gaps
 - Update platform docs if new patterns or conventions were established
 - Update CLAUDE.md if build commands, conventions, or structure changed
-
-### External Reference Standards
-Before making domain model, compliance, or grading decisions — consult the standards listed in the "External Reference Standards" section above.

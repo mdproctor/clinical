@@ -12,6 +12,7 @@ export function safetyWorkbench(trialId: string): Component {
     sortable: true,
     pageSize: 25,
     selection: "single",
+    selectionKey: "id",
     columns: [
       { id: "grade" as never, name: "Grade", expression: '(value = "GRADE_4" or value = "GRADE_5") ? "🔴 " & value : value = "GRADE_3" ? "🟠 " & value : value' },
       { id: "eventType" as never, name: "Event Type" },

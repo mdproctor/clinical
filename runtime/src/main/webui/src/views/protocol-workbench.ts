@@ -12,6 +12,7 @@ export function protocolWorkbench(trialId: string): Component {
     sortable: true,
     pageSize: 25,
     selection: "single",
+    selectionKey: "id",
     columns: [
       { id: "deviationType" as never, name: "Type" },
       { id: "severity" as never, name: "Severity", expression: 'value = "CRITICAL" ? "🔴 CRITICAL" : value = "MAJOR" ? "🟠 MAJOR" : "🟡 MINOR"' },

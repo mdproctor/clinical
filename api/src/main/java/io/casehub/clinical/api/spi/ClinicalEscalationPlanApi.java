@@ -11,7 +11,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.util.UUID;
 
-@McpDomain(value = "clinical/escalation-plans", basePath = "/api/adverse-events")
+@McpDomain(value = "clinical/escalation-plans", app = "clinical", basePath = "/api/adverse-events")
 public interface ClinicalEscalationPlanApi {
 
     @PlatformQuery("Get escalation plan recommendations for an adverse event")

@@ -18,7 +18,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/patients", basePath = "/trials/{trialId}/sites/{siteId}/patients")
+@McpDomain(value = "clinical/patients", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients")
 public interface ClinicalPatientApi {
 
     @PlatformQuery("List patients enrolled at a site")

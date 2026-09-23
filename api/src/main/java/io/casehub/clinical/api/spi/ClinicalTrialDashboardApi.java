@@ -25,7 +25,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/trial-dashboard", basePath = "/trials")
+@McpDomain(value = "clinical/trial-dashboard", app = "clinical", basePath = "/trials")
 public interface ClinicalTrialDashboardApi {
 
     @PlatformQuery("Get trial summary with enrollment, AE, and deviation counts")

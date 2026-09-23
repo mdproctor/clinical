@@ -14,7 +14,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.util.UUID;
 
-@McpDomain(value = "clinical/deviations", basePath = "/trials/{trialId}/sites/{siteId}/deviations")
+@McpDomain(value = "clinical/deviations", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/deviations")
 public interface ClinicalDeviationApi {
 
     @PlatformMutation("Report a protocol deviation")

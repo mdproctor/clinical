@@ -11,7 +11,7 @@ import io.casehub.platform.api.mcp.RestMethod;
 import io.casehub.platform.api.mcp.RestPath;
 import jakarta.annotation.security.RolesAllowed;
 
-@McpDomain(value = "clinical/gdpr", basePath = "/api/gdpr/erasure")
+@McpDomain(value = "clinical/gdpr", app = "clinical", basePath = "/api/gdpr/erasure")
 public interface ClinicalGdprApi {
 
     @PlatformMutation("Erase patient data (GDPR Art.17)")

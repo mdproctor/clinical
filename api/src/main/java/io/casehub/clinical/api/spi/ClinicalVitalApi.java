@@ -15,7 +15,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/vitals", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/vitals")
+@McpDomain(value = "clinical/vitals", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/vitals", summary = "Patient vital signs recording and queries")
 public interface ClinicalVitalApi {
 
     @PlatformMutation("Record a vital sign measurement")

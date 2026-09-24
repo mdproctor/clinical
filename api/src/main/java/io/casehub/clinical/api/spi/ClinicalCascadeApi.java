@@ -12,7 +12,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/cascade", app = "clinical", basePath = "/api/adverse-events")
+@McpDomain(value = "clinical/cascade", app = "clinical", basePath = "/api/adverse-events", summary = "Adverse event cascade detection and response")
 public interface ClinicalCascadeApi {
 
     @PlatformQuery("Get the escalation cascade for an adverse event")

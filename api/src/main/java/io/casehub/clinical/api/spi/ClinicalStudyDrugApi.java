@@ -15,7 +15,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/study-drug", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/study-drug")
+@McpDomain(value = "clinical/study-drug", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/study-drug", summary = "Investigational drug dispensing and accountability")
 public interface ClinicalStudyDrugApi {
 
     @PlatformMutation("Record a study drug administration")

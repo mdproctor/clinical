@@ -9,7 +9,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.util.List;
 
-@McpDomain(value = "clinical/narrative", app = "clinical", basePath = "/api/narrative")
+@McpDomain(value = "clinical/narrative", app = "clinical", basePath = "/api/narrative", summary = "Adverse event narrative generation")
 public interface ClinicalNarrativeApi {
 
     @PlatformQuery("Get decision narratives for a case")

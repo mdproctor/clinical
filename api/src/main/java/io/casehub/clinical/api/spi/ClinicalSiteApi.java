@@ -14,7 +14,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.util.UUID;
 
-@McpDomain(value = "clinical/sites", app = "clinical", basePath = "/trials/{trialId}/sites")
+@McpDomain(value = "clinical/sites", app = "clinical", basePath = "/trials/{trialId}/sites", summary = "Clinical trial site management")
 public interface ClinicalSiteApi {
 
     @PlatformMutation("Add a site to a trial")

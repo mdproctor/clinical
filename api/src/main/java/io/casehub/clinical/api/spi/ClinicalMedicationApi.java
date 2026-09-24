@@ -18,7 +18,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/medications", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/medications")
+@McpDomain(value = "clinical/medications", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/medications", summary = "Patient medication tracking within trials")
 public interface ClinicalMedicationApi {
 
     @PlatformMutation("Record a concomitant medication")

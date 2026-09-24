@@ -17,7 +17,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/adverse-events", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/adverse-events")
+@McpDomain(value = "clinical/adverse-events", app = "clinical", basePath = "/trials/{trialId}/sites/{siteId}/patients/{enrollmentId}/adverse-events", summary = "Record and track clinical trial adverse events")
 public interface ClinicalAdverseEventApi {
 
     @PlatformQuery("List adverse events for a patient")

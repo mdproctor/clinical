@@ -19,7 +19,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "clinical/trials", app = "clinical", basePath = "/trials")
+@McpDomain(value = "clinical/trials", app = "clinical", basePath = "/trials", summary = "Clinical trial lifecycle — register, activate, query trials")
 public interface ClinicalTrialApi {
 
     @PlatformQuery("List clinical trials")

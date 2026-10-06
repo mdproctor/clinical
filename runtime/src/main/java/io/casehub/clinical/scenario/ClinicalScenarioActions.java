@@ -16,8 +16,8 @@ import io.casehub.clinical.service.AdverseEventService;
 import io.casehub.clinical.service.ProtocolDeviationService;
 import io.casehub.clinical.service.TrialActivationService;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
-import io.casehub.pages.scenario.client.ActionContext;
-import io.casehub.pages.scenario.client.ScenarioAction;
+import io.casehub.pages.playbook.client.ActionContext;
+import io.casehub.pages.playbook.client.PlaybookAction;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @ApplicationScoped
-public class ClinicalScenarioActions {
+public class ClinicalPlaybookActions {
 
     @Inject CurrentPrincipal principal;
     @Inject TrialActivationService trialActivationService;
@@ -38,7 +38,7 @@ public class ClinicalScenarioActions {
     @Inject LedgerVerificationService ledgerVerificationService;
     @Inject EntityManager em;
 
-    @ScenarioAction("createTrial")
+    @PlaybookAction("createTrial")
     @Transactional
     public Map<String, Object> createTrial(ActionContext ctx) {
         ClinicalTrial trial = new ClinicalTrial();
@@ -53,14 +53,14 @@ public class ClinicalScenarioActions {
         return Map.of("trialId", trial.id.toString());
     }
 
-    @ScenarioAction("activateTrial")
+    @PlaybookAction("activateTrial")
     public Map<String, Object> activateTrial(ActionContext ctx) {
         UUID trialId = UUID.fromString(ctx.data("trialId"));
         trialActivationService.activate(trialId);
         return Map.of("status", "RECRUITING");
     }
 
-    @ScenarioAction("addSite")
+    @PlaybookAction("addSite")
     @Transactional
     public Map<String, Object> addSite(ActionContext ctx) {
         UUID trialId = UUID.fromString(ctx.data("trialId"));
@@ -74,7 +74,7 @@ public class ClinicalScenarioActions {
         return Map.of("siteId", site.id.toString());
     }
 
-    @ScenarioAction("enrollPatient")
+    @PlaybookAction("enrollPatient")
     @Transactional
     public Map<String, Object> enrollPatient(ActionContext ctx) {
         UUID siteId = UUID.fromString(ctx.data("siteId"));
@@ -90,7 +90,7 @@ public class ClinicalScenarioActions {
         return Map.of("enrollmentId", enrollment.id.toString());
     }
 
-    @ScenarioAction("reportAdverseEvent")
+    @PlaybookAction("reportAdverseEvent")
     public Map<String, Object> reportAdverseEvent(ActionContext ctx) {
         UUID enrollmentId = UUID.fromString(ctx.data("enrollmentId"));
         UUID siteId = UUID.fromString(ctx.data("siteId"));
@@ -114,7 +114,7 @@ public class ClinicalScenarioActions {
         return Map.of("aeId", ae.id.toString(), "slaDeadline", ae.slaDeadline.toString());
     }
 
-    @ScenarioAction("reportDeviation")
+    @PlaybookAction("reportDeviation")
     public Map<String, Object> reportDeviation(ActionContext ctx) {
         UUID siteId = UUID.fromString(ctx.data("siteId"));
         TrialSite site = em.find(TrialSite.class, siteId);
@@ -131,7 +131,7 @@ public class ClinicalScenarioActions {
         return Map.of("deviationId", deviation.id.toString());
     }
 
-    @ScenarioAction("verifyLedger")
+    @PlaybookAction("verifyLedger")
     public Map<String, Object> verifyLedger(ActionContext ctx) {
         UUID enrollmentId = UUID.fromString(ctx.data("enrollmentId"));
         boolean valid = ledgerVerificationService.verify(enrollmentId, "default");

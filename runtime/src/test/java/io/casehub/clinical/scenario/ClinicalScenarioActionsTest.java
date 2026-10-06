@@ -4,7 +4,7 @@ import io.casehub.clinical.api.ClinicalGroups;
 import io.casehub.clinical.entity.ClinicalTrial;
 import io.casehub.clinical.entity.PatientEnrollment;
 import io.casehub.clinical.entity.TrialSite;
-import io.casehub.pages.scenario.client.ActionContext;
+import io.casehub.pages.playbook.client.ActionContext;
 import io.casehub.platform.testing.FixedCurrentPrincipal;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 @TestSecurity(user = "test-actor", roles = {ClinicalGroups.SPONSOR, ClinicalGroups.INVESTIGATOR, ClinicalGroups.COORDINATOR})
-class ClinicalScenarioActionsTest {
+class ClinicalPlaybookActionsTest {
 
-    @Inject ClinicalScenarioActions actions;
+    @Inject ClinicalPlaybookActions actions;
     @Inject FixedCurrentPrincipal principal;
     @Inject
             jakarta.persistence.EntityManager em;
